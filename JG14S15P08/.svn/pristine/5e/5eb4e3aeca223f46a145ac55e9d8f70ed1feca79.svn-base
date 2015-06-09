@@ -1,0 +1,12 @@
+<XamlCompilerSaveState>
+  <ReferenceAssemblyList>
+    <LocalAssembly PathName="d:\fh\2.semester\pro\svn_conconi\trunk\implementation\sourcecode\conconi_windowsphone\conconitestapp\obj\debug\intermediatexaml\conconitestapp.exe" HashGuid="ee0049eb-875c-017c-cda5-ccdaa44bb4a1" />
+    <ReferenceAssembly PathName="c:\program files (x86)\microsoft sdks\windowsphoneapp\v8.1\extensionsdks\behaviorsxamlsdkmanaged\12.0\references\commonconfiguration\neutral\microsoft.xaml.interactions.dll" HashGuid="95a94f94-3917-d473-4f7c-18c4bd437046" />
+    <ReferenceAssembly PathName="c:\program files (x86)\microsoft sdks\windowsphoneapp\v8.1\extensionsdks\behaviorsxamlsdkmanaged\12.0\references\commonconfiguration\neutral\microsoft.xaml.interactivity.dll" HashGuid="d25f59e6-dd81-900a-0dfc-55b39f6898ef" />
+    <ReferenceAssembly PathName="e:\2.semester\prtools\conconiapp\svn\trunk_windows_phone\implementation\sourcecode\conconi_windowsphone\packages\mvvmlightlibs.5.1.1.0\lib\wpa81\galasoft.mvvmlight.dll" HashGuid="d702f8e6-9904-1220-8de7-be8614bf93e8" />
+    <ReferenceAssembly PathName="e:\2.semester\prtools\conconiapp\svn\trunk_windows_phone\implementation\sourcecode\conconi_windowsphone\packages\mvvmlightlibs.5.1.1.0\lib\wpa81\galasoft.mvvmlight.extras.dll" HashGuid="f59e2cac-89a1-06f4-bbe7-18857251ef78" />
+    <ReferenceAssembly PathName="e:\2.semester\prtools\conconiapp\svn\trunk_windows_phone\implementation\sourcecode\conconi_windowsphone\packages\mvvmlightlibs.5.1.1.0\lib\wpa81\galasoft.mvvmlight.platform.dll" HashGuid="27c4f135-c15f-18a2-cb9f-847748d33bdb" />
+    <ReferenceAssembly PathName="e:\2.semester\prtools\conconiapp\svn\trunk_windows_phone\implementation\sourcecode\conconi_windowsphone\packages\commonservicelocator.1.3\lib\portable-net4+sl5+netcore45+wpa81+wp8\microsoft.practices.servicelocation.dll" HashGuid="89de7f80-26d8-a17c-5ad9-b855f81ea5b2" />
+    <ReferenceAssembly PathName="e:\2.semester\prtools\conconiapp\svn\trunk_windows_phone\implementation\sourcecode\conconi_windowsphone\packages\propertychanged.fody.1.50.0\lib\portable-net4+sl4+wp8+win8+wpa81+monoandroid16+monotouch40\propertychanged.dll" HashGuid="315aae2c-f18e-24f8-38d7-dd48761a922c" />
+  </ReferenceAssemblyList>
+</XamlCompilerSaveState>

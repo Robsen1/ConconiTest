@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Machine>WINDISCH-NB</Machine>
+    <WindowsUser>Windisch</WindowsUser>
+    <TargetPlatformIdentifier>WindowsPhoneApp</TargetPlatformIdentifier>
+    <SolutionConfiguration>Debug|AnyCPU</SolutionConfiguration>
+    <PackageArchitecture>neutral</PackageArchitecture>
+    <PackageIdentityName>51898a2e-e812-43b1-a32e-446573f61953</PackageIdentityName>
+    <IntermediateOutputPath>D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\obj\Debug\</IntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <AppXManifest Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\bin\Debug\AppxManifest.xml">
+      <PackagePath>AppxManifest.xml</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+    </AppXManifest>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\bin\Debug\ConconiTestApp.exe">
+      <PackagePath>ConconiTestApp.exe</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Program Files %28x86%29\Microsoft SDKs\WindowsPhoneApp\v8.1\ExtensionSDKs\BehaviorsXamlSDKManaged\12.0\References\CommonConfiguration\Neutral\Microsoft.Xaml.Interactions.dll">
+      <PackagePath>Microsoft.Xaml.Interactions.dll</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Program Files %28x86%29\Microsoft SDKs\WindowsPhoneApp\v8.1\ExtensionSDKs\BehaviorsXamlSDKManaged\12.0\References\CommonConfiguration\Neutral\Microsoft.Xaml.Interactivity.dll">
+      <PackagePath>Microsoft.Xaml.Interactivity.dll</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\packages\MvvmLightLibs.5.1.1.0\lib\wpa81\GalaSoft.MvvmLight.dll">
+      <PackagePath>GalaSoft.MvvmLight.dll</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\packages\MvvmLightLibs.5.1.1.0\lib\wpa81\GalaSoft.MvvmLight.Extras.dll">
+      <PackagePath>GalaSoft.MvvmLight.Extras.dll</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\packages\MvvmLightLibs.5.1.1.0\lib\wpa81\GalaSoft.MvvmLight.Platform.dll">
+      <PackagePath>GalaSoft.MvvmLight.Platform.dll</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\packages\CommonServiceLocator.1.3\lib\portable-net4+sl5+netcore45+wpa81+wp8\Microsoft.Practices.ServiceLocation.dll">
+      <PackagePath>Microsoft.Practices.ServiceLocation.dll</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\Assets\Logo.scale-240.png">
+      <PackagePath>Assets\Logo.scale-240.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\Assets\SmallLogo.scale-240.png">
+      <PackagePath>Assets\SmallLogo.scale-240.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\Assets\SplashScreen.scale-240.png">
+      <PackagePath>Assets\SplashScreen.scale-240.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\Assets\Square71x71Logo.scale-240.png">
+      <PackagePath>Assets\Square71x71Logo.scale-240.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\Assets\StoreLogo.scale-240.png">
+      <PackagePath>Assets\StoreLogo.scale-240.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\Assets\WideLogo.scale-240.png">
+      <PackagePath>Assets\WideLogo.scale-240.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\FodyWeavers.xml">
+      <PackagePath>FodyWeavers.xml</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\bin\Debug\App.xbf">
+      <PackagePath>App.xbf</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\bin\Debug\MainPage.xbf">
+      <PackagePath>MainPage.xbf</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\bin\Debug\ConconiTestApp.xr.xml">
+      <PackagePath>ConconiTestApp.xr.xml</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="D:\FH\2.Semester\PRO\SVN_Conconi\trunk\Implementation\SourceCode\Conconi_WindowsPhone\ConconiTestApp\bin\Debug\resources.pri">
+      <PackagePath>resources.pri</PackagePath>
+    </AppxPackagedFile>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+</Project>
