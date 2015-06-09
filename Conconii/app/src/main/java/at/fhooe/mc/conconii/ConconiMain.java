@@ -11,6 +11,7 @@ public class ConconiMain extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String test = "Test-String";
+        // DAS IST EIN TEST
+
     }
 }
