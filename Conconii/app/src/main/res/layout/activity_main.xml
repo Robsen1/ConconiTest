@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="this text has no function :D"
+        android:text="this text große function :D"
         android:id="@+id/test_Text"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
