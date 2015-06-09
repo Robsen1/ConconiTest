@@ -10,5 +10,7 @@ public class ConconiMain extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        String test = "Test-String";
     }
 }
