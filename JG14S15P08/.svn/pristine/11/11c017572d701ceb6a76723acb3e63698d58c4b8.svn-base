@@ -1,0 +1,13 @@
+﻿<Application
+    x:Class="ConconiTestApp.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ConconiTestApp"
+    xmlns:viewModels="using:ConconiTestApp.ViewModels"
+    xmlns:converter="using:ConconiTestApp.Converter">
+    <Application.Resources>
+        <viewModels:ViewModelLocator x:Key="ViewModelLocator" />
+        <converter:ItemClickToDeviceInformationConverter x:Key="ItemClickToDeviceInformationConverter"/>
+            
+    </Application.Resources>
+</Application>
