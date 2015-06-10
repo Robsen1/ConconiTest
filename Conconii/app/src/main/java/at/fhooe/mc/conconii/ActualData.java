@@ -11,7 +11,7 @@ public class ActualData {
     private float mSpeed = 0f;
 
     private static float mTotalDistance = 0f;
-    private static Location mLastLocation = null; //wenn ned spiecherbar --> clone();
+    private static Location mLastLocation = null; //wenn nicht speicherbar --> clone();
 
 
     public ActualData() {
@@ -33,11 +33,14 @@ public class ActualData {
     }
 
     static int getActualHeartRate() {
+        //get bluetooth data
         return 0;
 
     }
 
     static float getActualDistance() {
+        //get GPS data
+
         //get last location by mLastLocation
         //get actual location from gps
         //calculate and store in mTotalDistance
@@ -46,6 +49,8 @@ public class ActualData {
     }
 
     static float getActualSpeed() {
+        // get GPS data
+
         return 0;
     }
 }
