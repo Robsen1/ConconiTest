@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 
+//bei start --> start gps/ble service
 
 public class StartscreenFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match

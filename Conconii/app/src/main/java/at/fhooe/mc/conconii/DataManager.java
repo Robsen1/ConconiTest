@@ -1,22 +1,58 @@
 package at.fhooe.mc.conconii;
 
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.location.Location;
+
 import java.util.ArrayList;
 
 /**
  * Created by Robsen & Gix
  */
 public class DataManager {
-    private static ArrayList<ActualData> mDataList = new ArrayList<>();
+    private ArrayList<ActualData> mDataList = new ArrayList<>();
+    private static DataManager mgr = null;
 
-    public static ArrayList<ActualData> getDataList(){
+    private float mTotalDistance = 0f;
+    private Location mLastLocation = null; //wenn nicht speicherbar --> clone();
+
+    private DataManager() {
+
+    }
+
+    //singelton pattern
+    public static DataManager getManager() {
+        if (mgr == null) {
+            mgr = new DataManager();
+        }
+        return mgr;
+    }
+
+    public ArrayList<ActualData> getDataList() {
         return mDataList;
     }
 
-    public static void addData(ActualData newData){
+    public void addData(ActualData newData) {
         mDataList.add(newData);
     }
 
-    //get bluetooth data
+    public int getActualHeartRate(){
+        //BluetoothGattCharacteristic to int
+        return 0;
+    }
 
-    //get GPS data
+    public float getActualDistance(){
+        //Location to float
+        //get GPS data
+        //get last location by mLastLocation
+        //get actual location from gps
+        //calculate and store in mTotalDistance
+        //store actual in mLastLocation
+        return 0;
+    }
+
+    public float getActualSpeed() {
+        // get GPS data
+
+        return 0;
+    }
 }
