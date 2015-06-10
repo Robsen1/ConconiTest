@@ -1,6 +1,7 @@
 package at.fhooe.mc.conconii;
 
 import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 
 
 //bei start --> start gps/ble service
+
 
 public class StartscreenFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
@@ -98,6 +100,7 @@ public class StartscreenFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+
     }
 
 }

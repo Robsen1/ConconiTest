@@ -1,14 +1,18 @@
 package at.fhooe.mc.conconii;
 
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
+import android.location.LocationManager;
 
 import java.util.ArrayList;
 
 /**
  * Created by Robsen & Gix
  */
-public class DataManager {
+public class DataManager extends BroadcastReceiver{
     private ArrayList<ActualData> mDataList = new ArrayList<>();
     private static DataManager mgr = null;
 
@@ -54,5 +58,11 @@ public class DataManager {
         // get GPS data
 
         return 0;
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+
+
     }
 }

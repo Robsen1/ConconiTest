@@ -27,6 +27,7 @@ public class MainActivity extends Activity {
                 mgr.addData(new ActualData());
             }
         }
+        startS
 
 
     }
