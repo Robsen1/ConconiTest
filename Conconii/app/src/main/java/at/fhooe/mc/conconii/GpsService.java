@@ -11,25 +11,30 @@ import android.os.IBinder;
 /**
  * Created by Robsen & Gix
  */
-public class GpsService extends Service implements LocationListener{
+public class GpsService extends Service implements LocationListener {
 
-    private LocationManager mLocationManager=null;
+    private LocationManager mLocationManager = null;
     private Location mLocation;
+    private boolean mLocationHasChanged=false;
 
     @Override
     public void onCreate() {
         super.onCreate();
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-        mLocationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER,
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                 500,   // 0.5s
                 0, this);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-           //endlosschleife
-            //mLocation intent
+
+        while (true) {
+            //do something
+
+            if (true) break; //break when finished test
+        }
 
 
         return START_STICKY;
@@ -38,15 +43,16 @@ public class GpsService extends Service implements LocationListener{
 
     @Override
     public void onLocationChanged(Location location) {
-        mLocation = location;
-
+        Intent update = new Intent(this,DataManager.class);
+        MyLocation loc= new MyLocation(mLocation); //implements Serializable
+        update.putExtra("GPS_Data",loc);
+        sendBroadcast(update);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
-
 
 
     @Override
@@ -62,5 +68,12 @@ public class GpsService extends Service implements LocationListener{
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        //TODO:
+        //unregister receiver
     }
 }
