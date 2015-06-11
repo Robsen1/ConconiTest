@@ -20,6 +20,8 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         DataManager mgr=DataManager.getManager();
+        registerReceiver(mgr,null);
+        //start fragment
         while (!testFinished) {
             //set text in gui per mgr getters
 
@@ -27,8 +29,11 @@ public class MainActivity extends Activity {
                 mgr.addData(new ActualData());
             }
         }
-        startS
+    }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(DataManager.getManager());
     }
 }

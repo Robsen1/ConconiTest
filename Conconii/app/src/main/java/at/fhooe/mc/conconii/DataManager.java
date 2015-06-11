@@ -3,6 +3,7 @@ package at.fhooe.mc.conconii;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 
 import java.util.ArrayList;
 
@@ -13,17 +14,16 @@ public class DataManager extends BroadcastReceiver {
     private ArrayList<ActualData> mDataList = new ArrayList<>();
     private static DataManager mgr = null;
 
-    private float mTotalDistance = 0f;
-    private MyLocation mLastLocation = null;
+    private Location mLastLocation = null;
     private Intent mIntent = null;
-    private MyLocation mActualLocation = null;
+    private Location mActualLocation = null;
+    private float mDistance = 0;
 
     //singelton pattern
     public static DataManager getManager() {
         if (mgr == null) {
             mgr = new DataManager();
-            //TODO:
-            //register Receiver Dynamically!
+
         }
         return mgr;
     }
@@ -37,27 +37,32 @@ public class DataManager extends BroadcastReceiver {
     }
 
     public int getActualHeartRate() {
-        //check intent for having Integer Extra
+        //TODO:
+        //ble implementation
         return 0;
     }
 
     public float getActualDistance() {
         //extract location out of intent
-        if (mIntent.getSerializableExtra("GPS_Data") != null) {//check whether serializable or not
-            mActualLocation = (MyLocation) mIntent.getExtras().getSerializable("GPS_DATA");
+
+        if (mIntent != null && mIntent.getSerializableExtra("GPS_Data") != null) {//check whether parcelable or not
+            mActualLocation = (Location) mIntent.getExtras().getParcelable("GPS_DATA");
         }
-        //TODO:
-        //Location to float
-        //get GPS data
-        //calculate and store in mTotalDistance
+        //calculate distance
+        if (mLastLocation != null) {
+            mDistance += mActualLocation.distanceTo(mLastLocation);
+        }
         //store actualLocation in mLastLocation
-        return 0;
+        mLastLocation = mActualLocation;
+        return mDistance;
     }
 
     public float getActualSpeed() {
-        // same as getActualDistance
+        if (mIntent != null && mIntent.getSerializableExtra("GPS_Data") != null) {//check whether parcelable or not
+            mActualLocation = (Location) mIntent.getExtras().getParcelable("GPS_DATA");
+        }
 
-        return 0;
+        return mActualLocation.getSpeed();
     }
 
     @Override
