@@ -1,7 +1,5 @@
 package at.fhooe.mc.conconii;
 
-import android.location.Location;
-
 /**
  * Created by Robsen & Gix
  */
@@ -10,11 +8,10 @@ public class ActualData {
     private float mDistance = 0f;
     private float mSpeed = 0f;
 
-    public ActualData() {
-        DataManager mgr= DataManager.getManager();
-        this.mHeartRate = mgr.getActualHeartRate();
+    public ActualData(DataManager mgr) {
+//        this.mHeartRate = mgr.getActualHeartRate();
         this.mDistance = mgr.getActualDistance();
-        this.mSpeed = mgr.getActualSpeed();
+//        this.mSpeed = mgr.getActualSpeed();
     }
 
     public int getHeartRate() {
