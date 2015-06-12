@@ -11,6 +11,7 @@ import java.util.ArrayList;
 /**
  * Created by Robsen & Gix
  */
+
 public class DataManager extends BroadcastReceiver {
     private static final String TAG = "DataManager";
     private ArrayList<ActualData> mDataList = new ArrayList<>();
@@ -22,18 +23,16 @@ public class DataManager extends BroadcastReceiver {
     private float mDistance = 0;
 
     //singelton pattern
-    //Problem:
-    //nach jedem on receive wird verliert mgr seine daten?!!!!?!
 
-    public static DataManager getInstance() {
-        if (mgr == null) {
-            mgr = new DataManager();
+    public static synchronized DataManager getInstance() {
+        if(DataManager.mgr==null){
+            DataManager.mgr=new DataManager();
+            Log.i(TAG,"reset singleton");
         }
-        return mgr;
+        return DataManager.mgr;
     }
 
     public DataManager() {
-       mgr=this;
     }
 
     public ArrayList<ActualData> getDataList() {
@@ -59,7 +58,7 @@ public class DataManager extends BroadcastReceiver {
         }
         //calculate distance
         if (mLastLocation != null) {
-            mDistance += mActualLocation.distanceTo(mLastLocation);
+            mDistance += (float)((int)(mActualLocation.distanceTo(mLastLocation)*100)/100);
         }
         Log.i(TAG, "mLastLocation: " + mLastLocation);
         //store actualLocation in mLastLocation
@@ -77,10 +76,10 @@ public class DataManager extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        mIntent = intent;
+        DataManager.mgr.mIntent = intent;
 
         try {
-            MainActivity.getInstance().updateUI(this);
+            MainActivity.getInstance().updateUI();
         } catch (Exception e) {
             e.printStackTrace();
         }

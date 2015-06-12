@@ -39,7 +39,7 @@
 
         <receiver
             android:name=".DataManager"
-            android:exported="true"></receiver>
+            android:exported="false"></receiver>
 
 
     </application>

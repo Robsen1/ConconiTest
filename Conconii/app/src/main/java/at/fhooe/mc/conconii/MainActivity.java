@@ -13,12 +13,13 @@ public class MainActivity extends Activity {
     private static MainActivity sin;
     private static final int STORE_PERIOD = 5; //in meters
     public static boolean testFinished = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         DataManager.getInstance();
-        sin=this;
+        sin = this;
 
 
     }
@@ -41,6 +42,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 testFinished = true;
+                finish();
             }
         });
 
@@ -52,20 +54,21 @@ public class MainActivity extends Activity {
 //        });
     }
 
-    public static MainActivity getInstance(){
-        return sin;
+    public synchronized static MainActivity getInstance() {
+        return MainActivity.sin;
     }
 
-    public void updateUI(DataManager mgr) {
+    public void updateUI() {
         //set text in gui per mgr getters
+        DataManager mgr = DataManager.getInstance();
+        float distance = mgr.getActualDistance();
         TextView log = (TextView) findViewById(R.id.test_text_log);
-        log.setText(String.valueOf(mgr.getActualDistance()));
-        if (((int) mgr.getActualDistance()) % STORE_PERIOD == 0) {
-           mgr.addData(new ActualData(mgr));
+        log.setText(String.valueOf(distance));
+        if (((int)distance) % STORE_PERIOD == 0 && (int)distance!=0) {
+            mgr.addData(new ActualData());
+            log.setText("addData");
         }
     }
-
-
 
 
 }
