@@ -10,7 +10,6 @@ public class EvaluationActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_evaluation);
-
-        //get
+        //TODO: calculate and display the test evaluation
     }
 }

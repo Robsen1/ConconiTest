@@ -9,10 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-//TODO:
-//bei start --> start gps/ble service
-// start threads ????
-
+//TODO: implement fragment and button logic
 
 public class StartscreenFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match

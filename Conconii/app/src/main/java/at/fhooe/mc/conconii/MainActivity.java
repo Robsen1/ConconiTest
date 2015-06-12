@@ -9,29 +9,28 @@ import android.widget.TextView;
 
 
 public class MainActivity extends Activity {
+    /**
+     * The MainActivity displays the actual distance,speed and heart rate.
+     */
 
-    private static MainActivity sin;
-    private static final int STORE_PERIOD = 50; //in meters
+    private static MainActivity instance; //singleton
+    private static final int STORE_PERIOD = 50; //interval for storing the data in meters
     public static boolean testFinished = false;
-    private float mDistance=0;
+    private float mDistance = 0; //the actual distance since the start in meters
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        DataManager.getInstance();
-        sin = this;
-
-
+        instance = this;
+        DataManager.getInstance(); //initial Singleton creation
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        //TODO: start fragment and put button logic into it
 
-        //start fragment
-        //TODO:
-        //place buttons in fragment
         Button b = (Button) findViewById(R.id.test_button_start);
         b.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -45,30 +44,41 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 testFinished = true;
-                mDistance=0;//only for testing
+                mDistance = 0;//only for testing
             }
         });
     }
 
+    /**
+     * called to get the MainActivity's actual object.
+     *
+     * @return the MainActivity's instance
+     */
     public synchronized static MainActivity getInstance() {
-        return MainActivity.sin;
+        return MainActivity.instance;
     }
 
-    //gets updated when DataManager is receiving and intent --> actualization delay==heartrate+locationchange
+    /**
+     * Called to update the user interface.
+     * Updated values are the distance,speed and heart rate.
+     * The update interval depends on the caller, each call is an update with the actual data.
+     */
     public void updateUI() {
-        //set text in gui per mgr getters
         DataManager mgr = DataManager.getInstance();
         if (mgr == null) return;
 
-        mDistance+=mgr.getActualDistance();
         TextView log1 = (TextView) findViewById(R.id.test_text_log_distance);
-        log1.setText(String.valueOf(mDistance) + " [m]");
         TextView log2 = (TextView) findViewById(R.id.test_text_log_speed);
-        log2.setText(String.valueOf(mgr.getActualSpeed()) + " [km/h]");
         TextView log3 = (TextView) findViewById(R.id.test_text_log_rate);
+
+        //update values
+        mDistance += mgr.getActualDistance(); //increase distance
+        log1.setText(String.valueOf(mDistance) + " [m]");
+        log2.setText(String.valueOf(mgr.getActualSpeed()) + " [km/h]");
         log3.setText(String.valueOf(mgr.getActualHeartRate()) + " [bpm]");
 
-        //addData not working yet
+        //add a measurement point to the ArrayList
+        //TODO: fix issue that data is not added in the given period
         int intDistance = (int) mDistance;
         if (intDistance % STORE_PERIOD == 0 && intDistance != 0) {
             mgr.addData(new ActualData());

@@ -7,23 +7,25 @@ import android.util.Log;
 
 /**
  * Created by Robsen & Gix
+ * This is the service for creating a ble connection and for receiving datafrom the GATT serve.
+ * This service works as a GATT client. Received data is sent to the DataManger singleton.
+ * This service runs in his own thread.
  */
 public class BluetoothService extends Service implements Runnable {
     private static final String TAG = "BluetoothService";
     private Thread mBleThread = null;
-
-//TODO:
-    //BLE implementation
-
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.i(TAG, "onCreate()");
         startThread();
-
     }
 
+    /**
+     * starts a new Thread and write log if successful
+     *
+     */
     private void startThread() {
         mBleThread = new Thread(this);
         mBleThread.start();
@@ -33,21 +35,12 @@ public class BluetoothService extends Service implements Runnable {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.i(TAG, "onDestroy()");
-
-    }
-
-    @Override
     public void run() {
 
-        //only for testing simulated heart rate
-        int hr=0;
+        //TODO: implement all the BLE logic
+
+        //for testing purposes a implementatin which simulates heart rate updates
+        int hr=0; //heart rate
         while (!MainActivity.testFinished) {
             try {
                 Thread.sleep(1000); //heart beat
@@ -61,5 +54,15 @@ public class BluetoothService extends Service implements Runnable {
         }
         Log.i(TAG, "Thread stopped");
         stopSelf();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "onDestroy()");
     }
 }
