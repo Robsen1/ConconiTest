@@ -20,14 +20,14 @@ public class DataManager extends BroadcastReceiver {
     private Location mLastLocation = null;
     private Intent mIntent = null;
     private Location mActualLocation = null;
-    private float mDistance = 0;
 
     //singelton pattern
 
     public static synchronized DataManager getInstance() {
-        if(DataManager.mgr==null){
-            DataManager.mgr=new DataManager();
-            Log.i(TAG,"reset singleton");
+        if (DataManager.mgr == null) {
+            DataManager.mgr = new DataManager();
+            Log.i(TAG, "Singleton creation");
+            MainActivity.testFinished = false; //only for testing
         }
         return DataManager.mgr;
     }
@@ -44,39 +44,52 @@ public class DataManager extends BroadcastReceiver {
     }
 
     public int getActualHeartRate() {
-        //TODO:
-        //ble implementation
-        return 0;
+        if (mIntent != null && mIntent.getIntExtra("BLE_DATA", -1) != -1) {
+            Log.i(TAG, "Integer received: " + mIntent.getIntExtra("BLE_DATA", -1));
+            return mIntent.getIntExtra("BLE_DATA", -1);
+
+
+        }
+        return -1;
     }
 
     public float getActualDistance() {
         //extract location out of intent
-
-        if (mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
+        float distance = 0;
+        if (mIntent != null && mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
             mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
-            Log.i(TAG, "Parcelable received");
+            Log.i(TAG, "Parcelable received: " + mActualLocation);
+
+            //calculate distance
+            if (mLastLocation != null) {
+                distance = mLastLocation.distanceTo(mActualLocation);
+//                if (distance > 7.0f) {
+//                    distance = 3.0f;
+//                }
+            }
         }
-        //calculate distance
-        if (mLastLocation != null) {
-            mDistance += (float)((int)(mActualLocation.distanceTo(mLastLocation)*100)/100);
-        }
-        Log.i(TAG, "mLastLocation: " + mLastLocation);
+
         //store actualLocation in mLastLocation
-        mLastLocation = new Location(mActualLocation);
-        return mDistance;
+        if (mActualLocation != null) {
+            mLastLocation = new Location(mActualLocation);
+        }
+        return distance;
     }
 
     public float getActualSpeed() {
-        if (mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
+        if (mIntent != null && mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
             mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
         }
-
-        return mActualLocation.getSpeed();
+        if (mActualLocation != null)
+            return mActualLocation.getSpeed() * 3.6f;
+        else return 0.0f;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        DataManager.mgr.mIntent = intent;
+        if (mgr != null) {
+            mgr.mIntent = intent;
+        }
 
         try {
             MainActivity.getInstance().updateUI();
@@ -84,6 +97,10 @@ public class DataManager extends BroadcastReceiver {
             e.printStackTrace();
         }
 
+    }
+
+    public void finalize() {
+        DataManager.mgr = null;
     }
 
     public void writeLog(String msg) {

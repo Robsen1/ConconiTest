@@ -36,6 +36,7 @@
         </activity>
 
         <service android:name="GpsService"></service>
+        <service android:name="BluetoothService"></service>
 
         <receiver
             android:name=".DataManager"

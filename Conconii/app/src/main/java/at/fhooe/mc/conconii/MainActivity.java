@@ -11,8 +11,9 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
 
     private static MainActivity sin;
-    private static final int STORE_PERIOD = 5; //in meters
+    private static final int STORE_PERIOD = 50; //in meters
     public static boolean testFinished = false;
+    private float mDistance=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,12 +30,14 @@ public class MainActivity extends Activity {
         super.onResume();
 
         //start fragment
+        //TODO:
+        //place buttons in fragment
         Button b = (Button) findViewById(R.id.test_button_start);
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent gpsService = new Intent(getApplicationContext(), GpsService.class);
-                startService(gpsService);
+                startService(new Intent(getApplicationContext(), GpsService.class));
+                startService(new Intent(getApplicationContext(), BluetoothService.class));
             }
         });
         Button s = (Button) findViewById(R.id.test_button_stop);
@@ -42,33 +45,39 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 testFinished = true;
-                finish();
+                mDistance=0;//only for testing
             }
         });
-
-//        MainActivity.this.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//            }
-//        });
     }
 
     public synchronized static MainActivity getInstance() {
         return MainActivity.sin;
     }
 
+    //gets updated when DataManager is receiving and intent --> actualization delay==heartrate+locationchange
     public void updateUI() {
         //set text in gui per mgr getters
         DataManager mgr = DataManager.getInstance();
-        float distance = mgr.getActualDistance();
-        TextView log = (TextView) findViewById(R.id.test_text_log);
-        log.setText(String.valueOf(distance));
-        if (((int)distance) % STORE_PERIOD == 0 && (int)distance!=0) {
+        if (mgr == null) return;
+
+        mDistance+=mgr.getActualDistance();
+        TextView log1 = (TextView) findViewById(R.id.test_text_log_distance);
+        log1.setText(String.valueOf(mDistance) + " [m]");
+        TextView log2 = (TextView) findViewById(R.id.test_text_log_speed);
+        log2.setText(String.valueOf(mgr.getActualSpeed()) + " [km/h]");
+        TextView log3 = (TextView) findViewById(R.id.test_text_log_rate);
+        log3.setText(String.valueOf(mgr.getActualHeartRate()) + " [bpm]");
+
+        //addData not working yet
+        int intDistance = (int) mDistance;
+        if (intDistance % STORE_PERIOD == 0 && intDistance != 0) {
             mgr.addData(new ActualData());
-            log.setText("addData");
+            log1.setText("addData:" + mDistance);
         }
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }

@@ -15,6 +15,12 @@ import android.widget.Toast;
  */
 public class GpsService extends Service implements LocationListener, Runnable {
 
+
+    //TEST GPS:
+    //speed measurement is really nice
+    //distance measurement has to be tested again with navi
+    //5 meters update interval is optimal value, so each second an intent is received
+
     private static final String TAG = "GpsService";
     private LocationManager mLocationManager = null;
     protected boolean isGpsEnabled = false;
@@ -25,8 +31,8 @@ public class GpsService extends Service implements LocationListener, Runnable {
         super.onCreate();
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                500,   // 0.5s
-                0, this);
+                0,   // 0.5s
+                5, this);
         Log.i(TAG, "onCreate()");
         startThread();
     }
@@ -87,10 +93,11 @@ public class GpsService extends Service implements LocationListener, Runnable {
     public void run() {
         while(!MainActivity.testFinished)
         {
-            //Do something
+            //Do nothing
         }
         mLocationManager.removeUpdates(this);
         Log.i(TAG, "Thread stopped");
+        DataManager.getInstance().finalize();
         stopSelf();
     }
 }

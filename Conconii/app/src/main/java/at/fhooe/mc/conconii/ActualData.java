@@ -10,9 +10,9 @@ public class ActualData {
 
     public ActualData() {
         DataManager mgr=DataManager.getInstance();
-//        this.mHeartRate = mgr.getActualHeartRate();
+        this.mHeartRate = mgr.getActualHeartRate();
         this.mDistance = mgr.getActualDistance();
-//        this.mSpeed = mgr.getActualSpeed();
+        this.mSpeed = mgr.getActualSpeed();
     }
 
     public int getHeartRate() {
