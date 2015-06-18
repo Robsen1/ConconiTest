@@ -1,5 +1,6 @@
 package at.fhooe.mc.conconii;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +22,7 @@ public class DataManager extends BroadcastReceiver {
     private static final String TAG = "DataManager";
     private ArrayList<ActualData> mDataList = new ArrayList<>(); //static list for measurement points
     private static DataManager mgr = null; //singleton
+    private ArrayList<BluetoothDevice> scannedDevices = new ArrayList<>();
 
     private Location mLastLocation = null;
     private Intent mIntent = null;
@@ -45,11 +47,12 @@ public class DataManager extends BroadcastReceiver {
      * public constructor because otherwise the broadcast receiver can't be registered statically int the manifest
      */
     public DataManager() {
-       //do stuff once
+        //do stuff once
     }
 
     /**
      * Getter method for the list of measured points
+     *
      * @return List of measured points
      */
     public ArrayList<ActualData> getDataList() {
@@ -117,6 +120,14 @@ public class DataManager extends BroadcastReceiver {
         if (mActualLocation != null)
             return mActualLocation.getSpeed() * 3.6f;
         else return 0.0f;
+    }
+
+    public ArrayList getScannedDevices() {
+        return scannedDevices;
+    }
+
+    public synchronized void addScannedDevice(BluetoothDevice device) {
+        mgr.scannedDevices.add(device);
     }
 
     @Override
