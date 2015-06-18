@@ -90,15 +90,18 @@ public class BluetoothService extends Service implements Runnable {
             @Override
             public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
                 super.onDescriptorWrite(gatt, descriptor, status);
+                Log.i(TAG, "onDescriptorWrite()");
             }
 
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 gatt.discoverServices();
+                Log.i(TAG, "onConnectionStateChange()");
             }
 
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                Log.i(TAG, "onServicesDiscovered()");
                 List<BluetoothGattService> services = gatt.getServices();
 
                 Iterator<BluetoothGattService> iterService = services.iterator();
@@ -127,21 +130,25 @@ public class BluetoothService extends Service implements Runnable {
             @Override
             public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                 super.onCharacteristicRead(gatt, characteristic, status);
+                Log.i(TAG, "onCharacteristicRead()");
             }
 
             @Override
             public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                 super.onCharacteristicWrite(gatt, characteristic, status);
+                Log.i(TAG, "onCharacteristicWrite()");
             }
 
             @Override
             public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
                 super.onCharacteristicChanged(gatt, characteristic);
+                Log.i(TAG, "onCharacteristicChanged()");
             }
 
             @Override
             public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
                 super.onDescriptorRead(gatt, descriptor, status);
+                Log.i(TAG,"onDescriptorRead()");
             }
 
         };
