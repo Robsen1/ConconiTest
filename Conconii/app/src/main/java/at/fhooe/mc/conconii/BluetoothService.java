@@ -68,7 +68,7 @@ public class BluetoothService extends Service implements Runnable {
         mBleThread = new Thread(this);
         mBleThread.start();
         if (mBleThread.isAlive()) {
-            Log.i(TAG, "Thread started");
+            Log.i(TAG, "Thread startedddddddd");
         }
     }
 
