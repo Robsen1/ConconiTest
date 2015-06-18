@@ -44,9 +44,11 @@ public class DataManager extends BroadcastReceiver {
     /**
      * public constructor because otherwise the broadcast receiver can't be registered statically int the manifest
      */
-    public DataManager() {
-       //do stuff once
+    protected DataManager() {
+       //TODO:try implementing singelton here
+
     }
+
 
     /**
      * Getter method for the list of measured points
@@ -123,7 +125,7 @@ public class DataManager extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         //make the received intent globally usable
         if (mgr != null) {
-            mgr.mIntent = intent;
+            mgr.mIntent = intent; //why is mIntent = intent not the same??!!??!?!?!?
         }
         //update the UI
         try {

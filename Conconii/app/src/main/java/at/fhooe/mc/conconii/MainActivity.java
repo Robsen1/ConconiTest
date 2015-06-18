@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
      */
     public void updateUI() {
         DataManager mgr = DataManager.getInstance();
-        if (mgr == null) return;
+        if (mgr == null) return; //possible to delete?
 
         TextView log1 = (TextView) findViewById(R.id.test_text_log_distance);
         TextView log2 = (TextView) findViewById(R.id.test_text_log_speed);
