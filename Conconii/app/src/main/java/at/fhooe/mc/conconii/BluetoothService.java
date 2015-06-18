@@ -1,6 +1,5 @@
 package at.fhooe.mc.conconii;
 
-import android.app.AlarmManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,11 +9,14 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.content.Intent;
+import android.hardware.Sensor;
 import android.os.IBinder;
 import android.util.Log;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -23,10 +25,6 @@ import java.util.List;
  * This service works as a GATT client. Received data is sent to the DataManger singleton.
  * This service runs in his own thread.
  */
-
-
-//testing MAC: 6C:EC:EB:00:E1:5F
-
 public class BluetoothService extends Service implements Runnable {
     private static final String TAG = "BluetoothService";
     private BluetoothManager mBluetoothManager = null;
@@ -38,7 +36,6 @@ public class BluetoothService extends Service implements Runnable {
     private BluetoothDevice chosenDevice;
 
     private Thread mBleThread = null;
-    private boolean stopScan = false;
 
     @Override
     public void onCreate() {
@@ -79,30 +76,16 @@ public class BluetoothService extends Service implements Runnable {
     public void run() {
         setBluetooth(true);
 
-
-        final BluetoothAdapter.LeScanCallback mBleCallback = new BluetoothAdapter.LeScanCallback() {
+        BluetoothAdapter.LeScanCallback mBleCallback = new BluetoothAdapter.LeScanCallback() {
             @Override
             public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                if (!DataManager.getInstance().getScannedDevices().contains(device)) {
-                    DataManager.getInstance().addScannedDevice(device);
-                    Log.i(TAG, "Device: " + device + " added");
-                }
-                else mBluetoothAdapter.stopLeScan(this);
+                DataManager.getInstance().addScannedDevice(device);
             }
         };
         mBluetoothAdapter.startLeScan(mBleCallback);
 
-
-        // TODO: create ui for user
-        // TODO: put the chosen device at 0 position
-        //TODO: notify user to snitch the heartratechestbelt otherwise null will be returned from the on lescan
-        //user stops the scan
-        long m1 =System.currentTimeMillis()+3000;
-        while(System.currentTimeMillis()<m1);
-
+        // TODO: the chosen device have to be at index 0
         chosenDevice = (BluetoothDevice) DataManager.getInstance().getScannedDevices().get(0);
-        Log.i(TAG,"chosenDevice: "+chosenDevice);
-
         BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
             @Override
             public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
@@ -124,10 +107,9 @@ public class BluetoothService extends Service implements Runnable {
                 Iterator<BluetoothGattService> iterService = services.iterator();
                 BluetoothGattService service = iterService.next();
                 while (iterService.hasNext()) {
-                    Log.i(TAG,"serviceType: "+service.getInstanceId()); //immer 0???
+
                     // check if its a heart rate sensor -> 6157 (0x180D)
                     if (service.getType() == 6157) {
-
                         List<BluetoothGattCharacteristic> charas = service.getCharacteristics();
 
                         Iterator<BluetoothGattCharacteristic> iterChara = charas.iterator();
@@ -135,13 +117,11 @@ public class BluetoothService extends Service implements Runnable {
 
                         // check whether it is the heart rate measurement characteristic 10807
                         if (chara.getInstanceId() == 10807) {
-                            Log.i(TAG,"charId: "+chara.getInstanceId());
 
                         }
 
 
                     }
-                    iterService.next();
                 }
 
 
@@ -168,27 +148,22 @@ public class BluetoothService extends Service implements Runnable {
             @Override
             public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
                 super.onDescriptorRead(gatt, descriptor, status);
-                Log.i(TAG, "onDescriptorRead()");
+                Log.i(TAG,"onDescriptorRead()");
             }
 
         };
         chosenDevice.connectGatt(this, true, mGattCallback);
 
 
-        while (!MainActivity.testFinished)
+        while (!MainActivity.testFinished) {
 
-        {
-//
-//            Intent intent = new Intent(this, DataManager.class);
-//            intent.putExtra("BLE_DATA", 0);
-//            sendBroadcast(intent);
-//            Log.i(TAG, "HeartRate update sent");
+            Intent intent = new Intent(this, DataManager.class);
+            intent.putExtra("BLE_DATA", 0);
+            sendBroadcast(intent);
+            Log.i(TAG, "HeartRate update sent");
         }
-
         Log.i(TAG, "Thread stopped");
-
         stopSelf();
-
     }
 
     @Override
