@@ -85,7 +85,7 @@ public class BluetoothService extends Service implements Runnable {
             public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
                 if (!DataManager.getInstance().getScannedDevices().contains(device)) {
                     DataManager.getInstance().addScannedDevice(device);
-                    Log.i(TAG, "Device: " + device + " added");
+                    Log.i(TAG, "Device: " + device.getName() + " added");
                 }
                 else mBluetoothAdapter.stopLeScan(this);
             }
@@ -124,7 +124,7 @@ public class BluetoothService extends Service implements Runnable {
                 Iterator<BluetoothGattService> iterService = services.iterator();
                 BluetoothGattService service = iterService.next();
                 while (iterService.hasNext()) {
-                    Log.i(TAG,"serviceType: "+service.getInstanceId()); //immer 0???
+                    //Log.i(TAG,"serviceType: "+service.getInstanceId()); //immer 0???
                     // check if its a heart rate sensor -> 6157 (0x180D)
                     if (service.getType() == 6157) {
 
