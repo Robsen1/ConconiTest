@@ -124,7 +124,7 @@ public class DataManager extends BroadcastReceiver {
         else return 0.0f;
     }
 
-    public ArrayList getScannedDevices() {
+    public synchronized ArrayList getScannedDevices() {
         return scannedDevices;
     }
 
