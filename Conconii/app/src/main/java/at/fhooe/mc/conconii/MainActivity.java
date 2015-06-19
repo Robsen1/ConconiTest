@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
         super.onResume();
         //TODO: start fragment and put button logic into it
 
-        Button b = (Button) findViewById(R.id.test_button_start);
+        Button b = (Button) findViewById(R.id.mainActivity_button_quit);
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
                 startService(new Intent(getApplicationContext(), BluetoothService.class));
             }
         });
-        Button s = (Button) findViewById(R.id.test_button_stop);
+        Button s = (Button) findViewById(R.id.mainActivity_button_quit);
         s.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,9 +68,9 @@ public class MainActivity extends Activity {
         DataManager mgr = DataManager.getInstance();
         if (mgr == null) return; //possible to delete?
 
-        TextView log1 = (TextView) findViewById(R.id.test_text_log_distance);
-        TextView log2 = (TextView) findViewById(R.id.test_text_log_speed);
-        TextView log3 = (TextView) findViewById(R.id.test_text_log_rate);
+        TextView log1 = (TextView) findViewById(R.id.mainActivity_text_distance);
+        TextView log2 = (TextView) findViewById(R.id.mainActivity_text_speed);
+        TextView log3 = (TextView) findViewById(R.id.mainActivity_text_heartRate);
 
         //update values
         mDistance += mgr.getActualDistance(); //increase distance
