@@ -43,8 +43,6 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 testFinished = true;
                 mDistance = 0;//only for testing
-                System.runFinalization();
-                System.exit(0);
             }
         });
     }
@@ -85,6 +83,12 @@ public class MainActivity extends Activity {
             mgr.addData(new ActualData());
             log1.setText("addData:" + mDistance);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        System.runFinalization();
+        System.exit(0);
     }
 
     @Override

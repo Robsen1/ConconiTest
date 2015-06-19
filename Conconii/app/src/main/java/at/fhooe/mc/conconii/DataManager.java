@@ -71,6 +71,23 @@ public class DataManager extends BroadcastReceiver {
     }
 
     /**
+     * Shows the state of the Bluetooth connection.
+     * -1 = no changes
+     * 0 = disconnected
+     * 1 = connecting
+     * 2 = connected
+     * 3 = disconnecting
+     * @return the actual state
+     */
+    public int getBleConnectionState(){
+        //check the received intent for its type
+        if(mIntent!=null&&mIntent.getIntExtra("BLE_CONN",-1)!=-1){
+            return mIntent.getIntExtra("BLE_CONN",-1);
+        }
+        return -1;
+    }
+
+    /**
      * Getter method for the actual heart rate.
      *
      * @return The last heart rate received by an intent, -1 if no data is received
