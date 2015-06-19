@@ -7,12 +7,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-
+/**
+ * The MainActivity displays the actual distance,speed and heart rate.
+ */
 public class MainActivity extends Activity {
-    /**
-     * The MainActivity displays the actual distance,speed and heart rate.
-     */
-
     private static MainActivity instance; //singleton
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
     public static boolean testFinished = false;
@@ -45,6 +43,8 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 testFinished = true;
                 mDistance = 0;//only for testing
+                System.runFinalization();
+                System.exit(0);
             }
         });
     }
