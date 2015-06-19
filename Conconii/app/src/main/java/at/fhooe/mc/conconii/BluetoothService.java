@@ -1,6 +1,5 @@
 package at.fhooe.mc.conconii;
 
-import android.app.AlarmManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -14,8 +13,8 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Robsen & Gix
@@ -23,34 +22,32 @@ import java.util.List;
  * This service works as a GATT client. Received data is sent to the DataManger singleton.
  * This service runs in his own thread.
  */
-
-
-//testing MAC: 6C:EC:EB:00:E1:5F
-
 public class BluetoothService extends Service implements Runnable {
     private static final String TAG = "BluetoothService";
-    private BluetoothManager mBluetoothManager = null;
+    private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION= UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); //descriptor
+    private static final UUID HEART_RATE_MEASUREMENT= UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb"); //characteristics
+    private static final UUID HEART_RATE= UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb"); //service
+
     private BluetoothAdapter mBluetoothAdapter = null;
-    private BluetoothAdapter.LeScanCallback mBleCallback;
-    private BluetoothGattCallback mGattCallback;
+    private BluetoothGatt mBluetoothGatt=null;
 
-    private BluetoothGatt mBluetoothGatt;
-    private BluetoothDevice chosenDevice;
-
-    private Thread mBleThread = null;
-    private boolean stopScan = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        mBluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
-        mBluetoothAdapter = mBluetoothManager.getAdapter();
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
 
         Log.i(TAG, "onCreate()");
         startThread();
     }
 
+    /**
+     * This Method toggles the Bluetooth status.
+     * @param enable true to enable Bluetooth, false to disable
+     * @return true if success, false otherwise
+     */
     private boolean setBluetooth(boolean enable) {
         boolean isEnabled = mBluetoothAdapter.isEnabled();
 
@@ -59,7 +56,6 @@ public class BluetoothService extends Service implements Runnable {
         } else if (!enable && isEnabled) {
             return mBluetoothAdapter.disable();
         }
-
         // necessary for compiler
         return false;
     }
@@ -68,127 +64,85 @@ public class BluetoothService extends Service implements Runnable {
      * starts a new Thread and write log if successful
      */
     private void startThread() {
-        mBleThread = new Thread(this);
-        mBleThread.start();
-        if (mBleThread.isAlive()) {
+        Thread thread = new Thread(this);
+        thread.start();
+        if (thread.isAlive()) {
             Log.i(TAG, "Thread started");
         }
     }
 
     @Override
     public void run() {
+        //enable Bluetooth
         setBluetooth(true);
 
-
-        final BluetoothAdapter.LeScanCallback mBleCallback = new BluetoothAdapter.LeScanCallback() {
+        //define LeScanCallback (deprecated version because no lollipop testing devices available)
+        final BluetoothAdapter.LeScanCallback bleCallback = new BluetoothAdapter.LeScanCallback() {
             @Override
             public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                if (!DataManager.getInstance().getScannedDevices().contains(device)) {
+                if (device != null && !DataManager.getInstance().getScannedDevices().contains(device)) {
                     DataManager.getInstance().addScannedDevice(device);
                     Log.i(TAG, "Device: " + device.getName() + " added");
-                }
-                else mBluetoothAdapter.stopLeScan(this);
+                } else mBluetoothAdapter.stopLeScan(this);
+                //TODO: stop scan as user chooses device (choosing puts device at pos 0 and stores UUID)
             }
         };
-        mBluetoothAdapter.startLeScan(mBleCallback);
+        //start scan with predefined callback
+        mBluetoothAdapter.startLeScan(bleCallback);
 
+        long m1 = System.currentTimeMillis() + 3000;//for testing purposes only
+        while (System.currentTimeMillis() < m1) ;
 
-        // TODO: create ui for user
-        // TODO: put the chosen device at 0 position
-        //TODO: notify user to snitch the heartratechestbelt otherwise null will be returned from the on lescan
-        //user stops the scan
-        long m1 =System.currentTimeMillis()+3000;
-        while(System.currentTimeMillis()<m1);
+        BluetoothDevice chosenDevice = (BluetoothDevice) DataManager.getInstance().getScannedDevices().get(0);
+        Log.i(TAG, "chosenDevice: " + chosenDevice);
 
-        chosenDevice = (BluetoothDevice) DataManager.getInstance().getScannedDevices().get(0);
-        Log.i(TAG,"chosenDevice: "+chosenDevice);
-
-        BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
-            @Override
-            public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-                super.onDescriptorWrite(gatt, descriptor, status);
-                Log.i(TAG, "onDescriptorWrite()");
-            }
-
+        BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                mBluetoothGatt=gatt;
                 gatt.discoverServices();
-                Log.i(TAG, "onConnectionStateChange()");
+                Log.i(TAG, "onConnectionStateChange(): " + newState);
             }
 
+            //TODO: code for supporting all BT devices
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                Log.i(TAG, "onServicesDiscovered()");
+                //5 times the same service is discovered and characteristic is empty
+                Log.i(TAG, "onServicesDiscovered() status: " + status);
+
                 List<BluetoothGattService> services = gatt.getServices();
+                BluetoothGattCharacteristic chara = services.get(2).getCharacteristics().get(0); //hardcoded
 
-                Iterator<BluetoothGattService> iterService = services.iterator();
-                BluetoothGattService service = iterService.next();
-                while (iterService.hasNext()) {
-                    //Log.i(TAG,"serviceType: "+service.getInstanceId()); //immer 0???
-                    // check if its a heart rate sensor -> 6157 (0x180D)
-                    if (service.getType() == 6157) {
-
-                        List<BluetoothGattCharacteristic> charas = service.getCharacteristics();
-
-                        Iterator<BluetoothGattCharacteristic> iterChara = charas.iterator();
-                        BluetoothGattCharacteristic chara = iterChara.next();
-
-                        // check whether it is the heart rate measurement characteristic 10807
-                        if (chara.getInstanceId() == 10807) {
-                            Log.i(TAG,"charId: "+chara.getInstanceId());
-
-                        }
-
-
-                    }
-                    iterService.next();
-                }
-
-
+                //set notifications for server and client
+                gatt.setCharacteristicNotification(chara, true);
+                BluetoothGattDescriptor desc = chara.getDescriptors().get(0);
+                desc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                gatt.writeDescriptor(desc);
             }
 
             @Override
-            public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                super.onCharacteristicRead(gatt, characteristic, status);
-                Log.i(TAG, "onCharacteristicRead()");
+            public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic
+                    characteristic) {
+                int heartRate = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1); //hardcoded
+                Log.i(TAG, "onCharacteristicChanged(): " + heartRate);
+                //send data to DataManager
+                Intent i = new Intent(BluetoothService.this, DataManager.class);
+                i.putExtra("BLE_DATA", heartRate);
+                sendBroadcast(i);
             }
-
-            @Override
-            public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                super.onCharacteristicWrite(gatt, characteristic, status);
-                Log.i(TAG, "onCharacteristicWrite()");
-            }
-
-            @Override
-            public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-                super.onCharacteristicChanged(gatt, characteristic);
-                Log.i(TAG, "onCharacteristicChanged()");
-            }
-
-            @Override
-            public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-                super.onDescriptorRead(gatt, descriptor, status);
-                Log.i(TAG, "onDescriptorRead()");
-            }
-
         };
-        chosenDevice.connectGatt(this, true, mGattCallback);
 
+        //establish Gatt connection
+        chosenDevice.connectGatt(this, true, gattCallback);
 
-        while (!MainActivity.testFinished)
-
-        {
-//
-//            Intent intent = new Intent(this, DataManager.class);
-//            intent.putExtra("BLE_DATA", 0);
-//            sendBroadcast(intent);
-//            Log.i(TAG, "HeartRate update sent");
+        while (!MainActivity.testFinished) {
+            //do nothing
         }
 
+        //stop everything
+        mBluetoothGatt.close();
         Log.i(TAG, "Thread stopped");
-
         stopSelf();
-
     }
 
     @Override
