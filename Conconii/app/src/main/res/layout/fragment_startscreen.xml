@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#ff73a2ff"
-        android:clickable="true"
+        android:clickable="false"
         android:layout_marginBottom="100dp"
         android:layout_marginLeft="30dp"
         android:layout_marginTop="30dp"
@@ -20,7 +20,9 @@
         android:measureWithLargestChild="true"
         android:focusableInTouchMode="false"
         android:layout_gravity="right|top"
-        android:padding="20dp">
+        android:padding="20dp"
+        android:alpha="20"
+        android:baselineAligned="false">
 
         <LinearLayout
             android:orientation="vertical"
