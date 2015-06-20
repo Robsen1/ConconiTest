@@ -1,6 +1,7 @@
 package at.fhooe.mc.conconii;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -32,6 +33,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         instance = this;
         DataManager.getInstance(); //initial Singleton creation
+        //TODO: only for testing purposes
+        startService(new Intent(getApplicationContext(), GpsService.class));
+        startService(new Intent(getApplicationContext(), BluetoothService.class));
 
         View startscreenView = findViewById(R.id.startscreen_backLayout_vertical);
 
@@ -49,13 +53,14 @@ public class MainActivity extends Activity {
             BluetoothDevice device = (BluetoothDevice) DataManager.getInstance().getScannedDevices().get(i);
             deviceNames.add(device.getName());
         }
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, deviceNames);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, deviceNames);
         sensorSpinner.setAdapter(spinnerAdapter);
         sensorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 BluetoothDevice chosenDevice = (BluetoothDevice) DataManager.getInstance().getScannedDevices().remove(position);
                 DataManager.getInstance().getScannedDevices().add(0, chosenDevice);
+                BluetoothService.stopScan=true;
             }
 
             @Override
@@ -65,10 +70,6 @@ public class MainActivity extends Activity {
 
         SeekBar startSpeedSeekBar = (SeekBar) findViewById(R.id.startscreen_startspeed_seekBar);
         Button startButton = (Button) findViewById(R.id.startscreen_button_start);
-
-        //TODO: only for testing purposes
-        startService(new Intent(getApplicationContext(), GpsService.class));
-        startService(new Intent(getApplicationContext(), BluetoothService.class));
     }
 
     @Override
@@ -76,7 +77,6 @@ public class MainActivity extends Activity {
         super.onResume();
         //TODO: start fragment and put button logic into it
     }
-
 
     /**
      * called to get the MainActivity's actual object.
