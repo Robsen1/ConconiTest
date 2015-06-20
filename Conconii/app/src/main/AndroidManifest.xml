@@ -44,9 +44,6 @@
             android:name=".DataManager"
             android:exported="false"></receiver>
 
-
-
-
     </application>
 
 </manifest>
