@@ -101,6 +101,7 @@ public class DataManager extends BroadcastReceiver {
         if (mIntent != null && mIntent.getIntExtra("BLE_DATA", -1) != -1) {
             Log.i(TAG, "Integer received: " + mIntent.getIntExtra("BLE_DATA", -1));
             mgr.mHeartRate = mIntent.getIntExtra("BLE_DATA", -1);
+            MainActivity.getInstance().changeHeartVisualisation();
         }
         return mHeartRate;
     }
