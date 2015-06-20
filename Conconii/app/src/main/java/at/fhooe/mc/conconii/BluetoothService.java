@@ -39,9 +39,6 @@ public class BluetoothService extends Service implements Runnable {
     public void onCreate() {
         super.onCreate();
 
-        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-
         Log.i(TAG, "onCreate()");
         startThread();
     }
@@ -76,6 +73,9 @@ public class BluetoothService extends Service implements Runnable {
 
     @Override
     public void run() {
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+
         //enable Bluetooth
         enableBluetooth(true);
 
@@ -90,12 +90,13 @@ public class BluetoothService extends Service implements Runnable {
                 else mBluetoothAdapter.stopLeScan(this); //for testing purposes only
             }
         };
+        while(!mBluetoothAdapter.isEnabled());
         //start scan with predefined callback
         mBluetoothAdapter.startLeScan(bleCallback);
 
         //TODO: stop scan as user chooses device (choosing puts device at pos 0 and stores UUID)
-        long m1 = System.currentTimeMillis() + 3000;//for testing purposes only
-        while (System.currentTimeMillis() < m1) ;
+        //for testing purposes only
+        while (DataManager.getInstance().getScannedDevices().size()==0) ;
         //wait until user has chosen a device
         //stop scanning
 
@@ -175,8 +176,9 @@ public class BluetoothService extends Service implements Runnable {
         }
 
         //stop everything
+        enableBluetooth(false);
+        mBluetoothGatt.disconnect();
         mBluetoothGatt.close();
-        mBluetoothGatt=null;
         Log.i(TAG, "Thread stopped");
         stopSelf();
     }

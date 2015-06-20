@@ -2,6 +2,7 @@ package at.fhooe.mc.conconii;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -17,7 +18,7 @@ public class MainActivity extends Activity {
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
     public static boolean testFinished = false;
     private float mDistance = 0; //the actual distance since the start in meters
-    private boolean mImageSet=true;
+    private boolean mImageSet = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +42,6 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 testFinished = true;
                 mDistance = 0;//only for testing
-                System.runFinalization();
-                System.exit(0);
             }
         });
     }
@@ -69,6 +68,8 @@ public class MainActivity extends Activity {
         TextView log1 = (TextView) findViewById(R.id.mainActivity_text_distance);
         TextView log2 = (TextView) findViewById(R.id.mainActivity_text_speed);
         TextView log3 = (TextView) findViewById(R.id.mainActivity_text_heartRate);
+        ImageView bleStatus = (ImageView) findViewById(R.id.mainActivity_image_BLEconnected);
+        ImageView gpsStatus = (ImageView) findViewById(R.id.mainActivity_image_GPSconnected);
 
         //update values
         mDistance += mgr.getActualDistance(); //increase distance
@@ -76,10 +77,20 @@ public class MainActivity extends Activity {
         log2.setText(String.valueOf(mgr.getActualSpeed()));
         log3.setText(String.valueOf(mgr.getActualHeartRate()));
 
+        //display connection state
+        int color=getConnectionStateColor(mgr.getBleConnectionState());
+        if (color != -1) {
+            bleStatus.setColorFilter(color);
+        }
+        color=getConnectionStateColor(mgr.getGpsConnectionState());
+        if(color!=-1){
+            gpsStatus.setColorFilter(color);
+        }
+
+
         //add a measurement point to the ArrayList
-        //TODO: fix issue that data is not added in the given period
         int intDistance = (int) mDistance;
-        if (intDistance % STORE_PERIOD == 0 && intDistance != 0) {
+        if (intDistance % STORE_PERIOD >= 1 && intDistance % STORE_PERIOD <= 7) {
             mgr.addData(new ActualData());
             log1.setText("addData:" + mDistance);
         }
@@ -89,10 +100,10 @@ public class MainActivity extends Activity {
         ImageView v = (ImageView) findViewById(R.id.mainActivity_image_HeartRate);
         if (mImageSet) {
             v.setImageResource(R.drawable.ic_favorite_border_black_48dp);
-            mImageSet=false;
+            mImageSet = false;
         } else {
             v.setImageResource(R.drawable.ic_favorite_48pt_3x);
-            mImageSet=true;
+            mImageSet = true;
         }
     }
 
@@ -102,4 +113,20 @@ public class MainActivity extends Activity {
     }
 
 
+    public int getConnectionStateColor(int state) {
+        int color = -1;
+        switch (state) {
+            case 0:
+                color = Color.argb(255, 255, 0, 0); //disconnected red
+                break;
+            case 1: color = Color.argb(255, 255, 255, 0); //connecting yellow
+                break;
+            case 2:
+                color = Color.argb(255, 0, 255, 0); //connected green
+                break;
+            case 3:color = Color.argb(255, 0, 0, 255); //disconnecting blue
+                break;
+        }
+        return color;
+    }
 }

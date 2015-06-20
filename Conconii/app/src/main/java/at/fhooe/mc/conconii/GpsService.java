@@ -2,6 +2,7 @@ package at.fhooe.mc.conconii;
 
 import android.app.Service;
 import android.content.Intent;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 public class GpsService extends Service implements LocationListener, Runnable {
 
     private static final String TAG = "GpsService";
+    public static boolean gpsIsConnected=false;
     private LocationManager mLocationManager = null;
     private Thread mGpsThread = null;
 
@@ -47,6 +49,7 @@ public class GpsService extends Service implements LocationListener, Runnable {
 
     @Override
     public void onLocationChanged(Location location) {
+        gpsIsConnected=true;
         //build and send intent
         Intent update = new Intent(this, DataManager.class);
         Bundle bundle = new Bundle();
@@ -63,6 +66,7 @@ public class GpsService extends Service implements LocationListener, Runnable {
             //do nothing just listen for location updates
         }
         mLocationManager.removeUpdates(this); //stop sending location updates
+        gpsIsConnected=false;
         Log.i(TAG, "Thread stopped");
         DataManager.getInstance().finalize(); //only for testing purposes
         stopSelf();

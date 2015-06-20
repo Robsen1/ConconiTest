@@ -92,6 +92,21 @@ public class DataManager extends BroadcastReceiver {
     }
 
     /**
+     * Shows the state of the GPS connection
+     * -1 = no changes
+     * 0 = disconnected
+     * 1 = connecting
+     * 2 = connected
+     *
+     * @return the actual state
+     */
+    public int getGpsConnectionState() {
+        if (GpsService.gpsIsConnected)
+            return 2;
+        else return 0;
+    }
+
+    /**
      * Getter method for the actual heart rate.
      *
      * @return The last heart rate received by an intent, -1 if no data is received
@@ -174,6 +189,7 @@ public class DataManager extends BroadcastReceiver {
     public void finalize() {
         DataManager.mgr = null;
     }
+
 /*
     public void writeLog(String msg) {
 
