@@ -24,6 +24,8 @@ import java.util.UUID;
  * This service works as a GATT client. Received data is sent to the DataManger singleton.
  * This service runs in his own thread.
  */
+
+//testing MAC: 6C:EC:EB:00:E1:5F
 public class BluetoothService extends Service implements Runnable {
     private static final String TAG = "BluetoothService";
     private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION= UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); //descriptor
@@ -49,7 +51,7 @@ public class BluetoothService extends Service implements Runnable {
      * @param enable true to enable Bluetooth, false to disable
      * @return true if success, false otherwise
      */
-    private boolean setBluetooth(boolean enable) {
+    private boolean enableBluetooth(boolean enable) {
         boolean isEnabled = mBluetoothAdapter.isEnabled();
 
         if (enable && !isEnabled) {
@@ -75,7 +77,7 @@ public class BluetoothService extends Service implements Runnable {
     @Override
     public void run() {
         //enable Bluetooth
-        setBluetooth(true);
+        enableBluetooth(true);
 
         //define LeScanCallback (deprecated version because no lollipop testing devices available)
         final BluetoothAdapter.LeScanCallback bleCallback = new BluetoothAdapter.LeScanCallback() {
@@ -84,15 +86,18 @@ public class BluetoothService extends Service implements Runnable {
                 if (device != null && !DataManager.getInstance().getScannedDevices().contains(device)) {
                     DataManager.getInstance().addScannedDevice(device);
                     Log.i(TAG, "Device: " + device.getName() + " added");
-                } else mBluetoothAdapter.stopLeScan(this);
-                //TODO: stop scan as user chooses device (choosing puts device at pos 0 and stores UUID)
+                }
+                else mBluetoothAdapter.stopLeScan(this); //for testing purposes only
             }
         };
         //start scan with predefined callback
         mBluetoothAdapter.startLeScan(bleCallback);
 
+        //TODO: stop scan as user chooses device (choosing puts device at pos 0 and stores UUID)
         long m1 = System.currentTimeMillis() + 3000;//for testing purposes only
         while (System.currentTimeMillis() < m1) ;
+        //wait until user has chosen a device
+        //stop scanning
 
         BluetoothDevice chosenDevice = (BluetoothDevice) DataManager.getInstance().getScannedDevices().get(0);
         Log.i(TAG, "chosenDevice: " + chosenDevice);
@@ -100,13 +105,14 @@ public class BluetoothService extends Service implements Runnable {
         BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-                if(status==BluetoothGatt.STATE_CONNECTED) {
+                if(newState==BluetoothGatt.STATE_CONNECTED) {
                     mBluetoothGatt = gatt;
                     gatt.discoverServices();
                     Log.i(TAG, "GATT connected");
                 }
                 Intent i = new Intent(BluetoothService.this,DataManager.class);
                 i.putExtra("BLE_CONN",newState);
+                sendBroadcast(i);
             }
 
             @Override
@@ -125,7 +131,6 @@ public class BluetoothService extends Service implements Runnable {
 
                  if(chara!=null && chara.getDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION)!=null) {
                      Log.i(TAG,"ble heart rate profile available");
-
                      //set notifications for server and client
                      gatt.setCharacteristicNotification(chara, true);
                      BluetoothGattDescriptor desc = chara.getDescriptors().get(0);
@@ -134,15 +139,25 @@ public class BluetoothService extends Service implements Runnable {
                  }
                 else{
                      Log.i(TAG, "ble heart rate profile NOT available");
-                     Toast.makeText(MainActivity.getInstance(),R.string.BLE_device_error_msg,Toast.LENGTH_LONG);
+                     MainActivity.getInstance().runOnUiThread(new Runnable() {
+                         @Override
+                         public void run() {
+                             Toast.makeText(MainActivity.getInstance(), R.string.BLE_device_error_msg, Toast.LENGTH_LONG).show();
+                         }
+                     });
                  }
             }
-
-            //TODO: distinguish between FORMAT
             @Override
             public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic
                     characteristic) {
-                int heartRate = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1); //hardcoded
+                int flag = characteristic.getProperties();
+                int format;
+                if ((flag & 0x01) != 0) {
+                    format = BluetoothGattCharacteristic.FORMAT_UINT16;
+                } else {
+                    format = BluetoothGattCharacteristic.FORMAT_UINT8;
+                }
+                int heartRate=characteristic.getIntValue(format,1);
                 //send data to DataManager
                 Intent i = new Intent(BluetoothService.this, DataManager.class);
                 i.putExtra("BLE_DATA", heartRate);
