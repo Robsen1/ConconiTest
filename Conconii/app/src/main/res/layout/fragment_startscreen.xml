@@ -69,7 +69,8 @@
                     android:id="@+id/startscreen_startspeed_seekBar"
                     android:indeterminateOnly="false"
                     android:indeterminate="false"
-                    android:layout_weight="30" />
+                    android:layout_weight="30"
+                    android:focusable="true" />
 
                 <TextView
                     android:layout_width="match_parent"
