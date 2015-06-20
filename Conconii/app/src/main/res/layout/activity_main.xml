@@ -172,7 +172,7 @@
                     android:layout_gravity="center_vertical"
                     android:adjustViewBounds="true"
                     android:src="@drawable/abc_btn_switch_to_on_mtrl_00012"
-                    android:tint="#ffc74005" />
+                    android:tint="#ff0dc710" />
 
                 <TextView
                     android:id="@+id/mainActivity_text_BLEconnected"
@@ -212,7 +212,7 @@
                     android:layout_gravity="center_vertical"
                     android:focusableInTouchMode="true"
                     android:src="@drawable/abc_btn_switch_to_on_mtrl_00012"
-                    android:tint="#ffc74005" />
+                    android:tint="#ff0dc710" />
 
                 <TextView
                     android:id="@+id/mainActivity_text_GPSconnected"

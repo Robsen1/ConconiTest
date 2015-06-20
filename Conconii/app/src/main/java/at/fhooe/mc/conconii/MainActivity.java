@@ -5,9 +5,15 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 
 /**
@@ -26,6 +32,41 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         instance = this;
         DataManager.getInstance(); //initial Singleton creation
+
+        View startscreenView = findViewById(R.id.startscreen_backLayout_vertical);
+
+        // hide the quit button
+        Button quitButton = (Button) findViewById(R.id.mainActivity_button_quit);
+        quitButton.setVisibility(View.GONE);
+
+        //startscreen spinner, seek and button
+
+        //spinner with the device names of the scanned dvices (from DataManager - scannedDevices ArrayList<BluetoothDevice>)
+        Spinner sensorSpinner = (Spinner) findViewById(R.id.startscreen_heartRateSensors_spinner);
+        ArrayList<String> deviceNames = new ArrayList<>();
+
+        for (int i = 0; i < DataManager.getInstance().getScannedDevices().toArray().length; i++) {
+            BluetoothDevice device = (BluetoothDevice) DataManager.getInstance().getScannedDevices().get(i);
+            deviceNames.add(device.getName());
+        }
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, deviceNames);
+        sensorSpinner.setAdapter(spinnerAdapter);
+        sensorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                BluetoothDevice chosenDevice = (BluetoothDevice) DataManager.getInstance().getScannedDevices().remove(position);
+                DataManager.getInstance().getScannedDevices().add(0, chosenDevice);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        SeekBar startSpeedSeekBar = (SeekBar) findViewById(R.id.startscreen_startspeed_seekBar);
+        Button startButton = (Button) findViewById(R.id.startscreen_button_start);
+
+        //TODO: only for testing purposes
         startService(new Intent(getApplicationContext(), GpsService.class));
         startService(new Intent(getApplicationContext(), BluetoothService.class));
     }
@@ -34,16 +75,6 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         //TODO: start fragment and put button logic into it
-
-
-        Button b = (Button) findViewById(R.id.mainActivity_button_quit);
-        b.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                testFinished = true;
-                mDistance = 0;//only for testing
-            }
-        });
     }
 
 
@@ -89,8 +120,9 @@ public class MainActivity extends Activity {
 
 
         //add a measurement point to the ArrayList
+        //TODO: fix issue that data is not added in the given period
         int intDistance = (int) mDistance;
-        if (intDistance % STORE_PERIOD >= 1 && intDistance % STORE_PERIOD <= 7) {
+        if (intDistance % STORE_PERIOD == 0 && intDistance != 0) {
             mgr.addData(new ActualData());
             log1.setText("addData:" + mDistance);
         }
@@ -100,10 +132,10 @@ public class MainActivity extends Activity {
         ImageView v = (ImageView) findViewById(R.id.mainActivity_image_HeartRate);
         if (mImageSet) {
             v.setImageResource(R.drawable.ic_favorite_border_black_48dp);
-            mImageSet = false;
+            mImageSet=false;
         } else {
             v.setImageResource(R.drawable.ic_favorite_48pt_3x);
-            mImageSet = true;
+            mImageSet=true;
         }
     }
 
