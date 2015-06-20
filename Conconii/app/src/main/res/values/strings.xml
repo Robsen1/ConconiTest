@@ -6,6 +6,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_evaluation">EvaluationActivity</string>
 
-<!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="BLE_device_error_msg">Error: Bluetooth device NOT supported</string>
 </resources>

@@ -12,7 +12,9 @@ import android.bluetooth.BluetoothManager;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +24,8 @@ import java.util.UUID;
  * This service works as a GATT client. Received data is sent to the DataManger singleton.
  * This service runs in his own thread.
  */
+
+//testing MAC: 6C:EC:EB:00:E1:5F
 public class BluetoothService extends Service implements Runnable {
     private static final String TAG = "BluetoothService";
     private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION= UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); //descriptor
@@ -30,7 +34,6 @@ public class BluetoothService extends Service implements Runnable {
 
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothGatt mBluetoothGatt=null;
-
 
     @Override
     public void onCreate() {
@@ -48,7 +51,7 @@ public class BluetoothService extends Service implements Runnable {
      * @param enable true to enable Bluetooth, false to disable
      * @return true if success, false otherwise
      */
-    private boolean setBluetooth(boolean enable) {
+    private boolean enableBluetooth(boolean enable) {
         boolean isEnabled = mBluetoothAdapter.isEnabled();
 
         if (enable && !isEnabled) {
@@ -74,7 +77,7 @@ public class BluetoothService extends Service implements Runnable {
     @Override
     public void run() {
         //enable Bluetooth
-        setBluetooth(true);
+        enableBluetooth(true);
 
         //define LeScanCallback (deprecated version because no lollipop testing devices available)
         final BluetoothAdapter.LeScanCallback bleCallback = new BluetoothAdapter.LeScanCallback() {
@@ -83,15 +86,18 @@ public class BluetoothService extends Service implements Runnable {
                 if (device != null && !DataManager.getInstance().getScannedDevices().contains(device)) {
                     DataManager.getInstance().addScannedDevice(device);
                     Log.i(TAG, "Device: " + device.getName() + " added");
-                } else mBluetoothAdapter.stopLeScan(this);
-                //TODO: stop scan as user chooses device (choosing puts device at pos 0 and stores UUID)
+                }
+                else mBluetoothAdapter.stopLeScan(this); //for testing purposes only
             }
         };
         //start scan with predefined callback
         mBluetoothAdapter.startLeScan(bleCallback);
 
+        //TODO: stop scan as user chooses device (choosing puts device at pos 0 and stores UUID)
         long m1 = System.currentTimeMillis() + 3000;//for testing purposes only
         while (System.currentTimeMillis() < m1) ;
+        //wait until user has chosen a device
+        //stop scanning
 
         BluetoothDevice chosenDevice = (BluetoothDevice) DataManager.getInstance().getScannedDevices().get(0);
         Log.i(TAG, "chosenDevice: " + chosenDevice);
@@ -99,36 +105,65 @@ public class BluetoothService extends Service implements Runnable {
         BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-                mBluetoothGatt=gatt;
-                gatt.discoverServices();
-                Log.i(TAG, "onConnectionStateChange(): " + newState);
+                if(newState==BluetoothGatt.STATE_CONNECTED) {
+                    mBluetoothGatt = gatt;
+                    gatt.discoverServices();
+                    Log.i(TAG, "GATT connected");
+                }
+                Intent i = new Intent(BluetoothService.this,DataManager.class);
+                i.putExtra("BLE_CONN",newState);
+                sendBroadcast(i);
             }
 
-            //TODO: code for supporting all BT devices
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                //5 times the same service is discovered and characteristic is empty
-                Log.i(TAG, "onServicesDiscovered() status: " + status);
-
                 List<BluetoothGattService> services = gatt.getServices();
-                BluetoothGattCharacteristic chara = services.get(2).getCharacteristics().get(0); //hardcoded
+                Log.i(TAG, services.size()+" services discovered");
+                BluetoothGattCharacteristic chara=null;
+                Iterator<BluetoothGattService> iterator=services.iterator();
+                do{
+                    BluetoothGattService serv=iterator.next();
+                    if(serv.getUuid().equals(HEART_RATE)){
+                        chara=serv.getCharacteristic(HEART_RATE_MEASUREMENT);
+                    }
 
-                //set notifications for server and client
-                gatt.setCharacteristicNotification(chara, true);
-                BluetoothGattDescriptor desc = chara.getDescriptors().get(0);
-                desc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                gatt.writeDescriptor(desc);
+                }while(iterator.hasNext() && chara==null);
+
+                 if(chara!=null && chara.getDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION)!=null) {
+                     Log.i(TAG,"ble heart rate profile available");
+                     //set notifications for server and client
+                     gatt.setCharacteristicNotification(chara, true);
+                     BluetoothGattDescriptor desc = chara.getDescriptors().get(0);
+                     desc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                     gatt.writeDescriptor(desc);
+                 }
+                else{
+                     Log.i(TAG, "ble heart rate profile NOT available");
+                     MainActivity.getInstance().runOnUiThread(new Runnable() {
+                         @Override
+                         public void run() {
+                             Toast.makeText(MainActivity.getInstance(), R.string.BLE_device_error_msg, Toast.LENGTH_LONG).show();
+                         }
+                     });
+                 }
             }
-
             @Override
             public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic
                     characteristic) {
-                int heartRate = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1); //hardcoded
-                Log.i(TAG, "onCharacteristicChanged(): " + heartRate);
+                int flag = characteristic.getProperties();
+                int format;
+                if ((flag & 0x01) != 0) {
+                    format = BluetoothGattCharacteristic.FORMAT_UINT16;
+                } else {
+                    format = BluetoothGattCharacteristic.FORMAT_UINT8;
+                }
+                int heartRate=characteristic.getIntValue(format,1);
                 //send data to DataManager
-                Intent i = new Intent(BluetoothService.this, DataManager.class);
-                i.putExtra("BLE_DATA", heartRate);
-                sendBroadcast(i);
+                if(heartRate!=0) {
+                    Intent i = new Intent(BluetoothService.this, DataManager.class);
+                    i.putExtra("BLE_DATA", heartRate);
+                    sendBroadcast(i);
+                }
             }
         };
 
@@ -141,6 +176,7 @@ public class BluetoothService extends Service implements Runnable {
 
         //stop everything
         mBluetoothGatt.close();
+        mBluetoothGatt=null;
         Log.i(TAG, "Thread stopped");
         stopSelf();
     }
