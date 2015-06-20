@@ -21,6 +21,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         instance = this;
+        startService(new Intent(getApplicationContext(), GpsService.class));
+        startService(new Intent(getApplicationContext(), BluetoothService.class));
         DataManager.getInstance(); //initial Singleton creation
     }
 
@@ -29,14 +31,6 @@ public class MainActivity extends Activity {
         super.onResume();
         //TODO: start fragment and put button logic into it
 
-        Button b = (Button) findViewById(R.id.mainActivity_button_quit);
-        b.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startService(new Intent(getApplicationContext(), GpsService.class));
-                startService(new Intent(getApplicationContext(), BluetoothService.class));
-            }
-        });
         Button s = (Button) findViewById(R.id.mainActivity_button_quit);
         s.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,9 +68,9 @@ public class MainActivity extends Activity {
 
         //update values
         mDistance += mgr.getActualDistance(); //increase distance
-        log1.setText(String.valueOf(mDistance) + " [m]");
-        log2.setText(String.valueOf(mgr.getActualSpeed()) + " [km/h]");
-        log3.setText(String.valueOf(mgr.getActualHeartRate()) + " [bpm]");
+        log1.setText(String.valueOf(mDistance));
+        log2.setText(String.valueOf(mgr.getActualSpeed()));
+        log3.setText(String.valueOf(mgr.getActualHeartRate()));
 
         //add a measurement point to the ArrayList
         //TODO: fix issue that data is not added in the given period

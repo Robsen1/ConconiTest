@@ -16,7 +16,8 @@
         android:layout_height="fill_parent"
         android:layout_gravity="right"
         android:focusable="false"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:baselineAligned="true">
 
         <LinearLayout
             android:id="@+id/mainActivity_layoutHeatRate_horizontal"
@@ -188,7 +189,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:stateListAnimator="@null"
                 android:clickable="false"
                 android:elegantTextHeight="false"
                 android:text="QUIT"

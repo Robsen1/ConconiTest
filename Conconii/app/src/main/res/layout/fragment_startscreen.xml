@@ -6,4 +6,17 @@
 
     <!-- TODO: Update blank fragment layout -->
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ff73a2ff"
+        android:clickable="true"
+        android:layout_marginBottom="100dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginRight="30dp"
+        android:id="@+id/startscreen_backLayout_vertical"
+        android:measureWithLargestChild="true"
+        android:focusableInTouchMode="false"></LinearLayout>
 </FrameLayout>
