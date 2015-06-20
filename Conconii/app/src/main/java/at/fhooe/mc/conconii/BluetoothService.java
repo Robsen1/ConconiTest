@@ -159,9 +159,11 @@ public class BluetoothService extends Service implements Runnable {
                 }
                 int heartRate=characteristic.getIntValue(format,1);
                 //send data to DataManager
-                Intent i = new Intent(BluetoothService.this, DataManager.class);
-                i.putExtra("BLE_DATA", heartRate);
-                sendBroadcast(i);
+                if(heartRate!=0) {
+                    Intent i = new Intent(BluetoothService.this, DataManager.class);
+                    i.putExtra("BLE_DATA", heartRate);
+                    sendBroadcast(i);
+                }
             }
         };
 

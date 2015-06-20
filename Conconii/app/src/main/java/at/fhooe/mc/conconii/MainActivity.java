@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * The MainActivity displays the actual distance,speed and heart rate.
@@ -47,7 +48,6 @@ public class MainActivity extends Activity {
         });
     }
 
-
     /**
      * called to get the MainActivity's actual object.
      *
@@ -71,17 +71,17 @@ public class MainActivity extends Activity {
         TextView log3 = (TextView) findViewById(R.id.test_text_log_rate);
 
         //update values
-        mDistance += mgr.getActualDistance(); //increase distance
-        log1.setText(String.valueOf(mDistance) + " [m]");
+        mDistance += mgr.getActualDistance()/1000; //increase distance
+        log1.setText(String.valueOf(mDistance) + " [km]");
         log2.setText(String.valueOf(mgr.getActualSpeed()) + " [km/h]");
         log3.setText(String.valueOf(mgr.getActualHeartRate()) + " [bpm]");
 
         //add a measurement point to the ArrayList
-        //TODO: fix issue that data is not added in the given period
         int intDistance = (int) mDistance;
-        if (intDistance % STORE_PERIOD == 0 && intDistance != 0) {
+        int moduloFactor = intDistance % STORE_PERIOD;
+        if (moduloFactor>=1 && moduloFactor<=7) {
             mgr.addData(new ActualData());
-            log1.setText("addData:" + mDistance);
+            Toast.makeText(this,"Data stored at: "+intDistance,Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -1,5 +1,6 @@
 package at.fhooe.mc.conconii;
 
+
 /**
  * Created by Robsen & Gix
  * This class is a simple data container class for storing the measurement points.

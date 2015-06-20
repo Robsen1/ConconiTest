@@ -25,8 +25,11 @@ public class DataManager extends BroadcastReceiver {
     private ArrayList<BluetoothDevice> scannedDevices = new ArrayList<>();
 
     private Location mLastLocation = null;
-    private Intent mIntent = null;
     private Location mActualLocation = null;
+    private int mHeartRate = 0;
+    private float mSpeed = 0;
+    private Intent mIntent = null;
+
 
     /**
      * This method is used to get the DataManager instance.
@@ -77,12 +80,13 @@ public class DataManager extends BroadcastReceiver {
      * 1 = connecting
      * 2 = connected
      * 3 = disconnecting
+     *
      * @return the actual state
      */
-    public int getBleConnectionState(){
+    public int getBleConnectionState() {
         //check the received intent for its type
-        if(mIntent!=null&&mIntent.getIntExtra("BLE_CONN",-1)!=-1){
-            return mIntent.getIntExtra("BLE_CONN",-1);
+        if (mIntent != null && mIntent.getIntExtra("BLE_CONN", -1) != -1) {
+            return mIntent.getIntExtra("BLE_CONN", -1);
         }
         return -1;
     }
@@ -96,9 +100,9 @@ public class DataManager extends BroadcastReceiver {
         //check the received intent for its type
         if (mIntent != null && mIntent.getIntExtra("BLE_DATA", -1) != -1) {
             Log.i(TAG, "Integer received: " + mIntent.getIntExtra("BLE_DATA", -1));
-            return mIntent.getIntExtra("BLE_DATA", -1);
+            mgr.mHeartRate = mIntent.getIntExtra("BLE_DATA", -1);
         }
-        return -1;
+        return mHeartRate;
     }
 
     /**
@@ -110,7 +114,7 @@ public class DataManager extends BroadcastReceiver {
         float distance = 0;
         //check the actual intent for its type
         if (mIntent != null && mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
-            mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
+            mgr.mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
             Log.i(TAG, "Parcelable received: " + mActualLocation);
 
             //calculate new distance in meters
@@ -119,8 +123,8 @@ public class DataManager extends BroadcastReceiver {
             }
         }
         //store last location
-        if (mActualLocation != null) {
-            mLastLocation = new Location(mActualLocation);
+        if (mgr.mActualLocation != null) {
+            mgr.mLastLocation = new Location(mActualLocation);
         }
         return distance;
     }
@@ -133,12 +137,12 @@ public class DataManager extends BroadcastReceiver {
     public float getActualSpeed() {
         //check the actual intent for its type
         if (mIntent != null && mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
-            mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
+            mgr.mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
         }
         //calculate actual speed in km/h
         if (mActualLocation != null)
-            return mActualLocation.getSpeed() * 3.6f;
-        else return 0.0f;
+            mgr.mSpeed = mActualLocation.getSpeed() * 3.6f;
+        return mgr.mSpeed;
     }
 
     public synchronized ArrayList getScannedDevices() {
@@ -159,7 +163,7 @@ public class DataManager extends BroadcastReceiver {
         try {
             MainActivity.getInstance().updateUI();
         } catch (Exception e) {
-            e.printStackTrace();
+            //just ignore
         }
     }
 
