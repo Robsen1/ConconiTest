@@ -1,9 +1,9 @@
 package at.fhooe.mc.conconii;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.util.Log;
 
@@ -18,11 +18,13 @@ import java.util.ArrayList;
  * some data until a new intent is received.
  */
 
-public class DataManager extends BroadcastReceiver {
+
+//TODO: change gps implementation
+
+public class DataManager extends Observable {
     private static final String TAG = "DataManager";
     private ArrayList<ActualData> mDataList = new ArrayList<>(); //static list for measurement points
     private static DataManager mgr = null; //singleton
-    private ArrayList<BluetoothDevice> scannedDevices = new ArrayList<>();
 
     private Location mLastLocation = null;
     private Location mActualLocation = null;
@@ -41,16 +43,17 @@ public class DataManager extends BroadcastReceiver {
         if (DataManager.mgr == null) {
             DataManager.mgr = new DataManager();
             Log.i(TAG, "Singleton creation");
-            MainActivity.testFinished = false; //only for testing purposes
         }
         return DataManager.mgr;
     }
+
+
 
     /**
      * public constructor because otherwise the broadcast receiver can't be registered statically int the manifest
      */
 
-    public DataManager() {
+    private DataManager() {
         //do stuff once
     }
 
@@ -74,49 +77,18 @@ public class DataManager extends BroadcastReceiver {
     }
 
     /**
-     * Shows the state of the Bluetooth connection.
-     * -1 = no changes
-     * 0 = disconnected
-     * 1 = connecting
-     * 2 = connected
-     * 3 = disconnecting
-     *
-     * @return the actual state
-     */
-    public int getBleConnectionState() {
-        //check the received intent for its type
-        if (mIntent != null && mIntent.getIntExtra("BLE_CONN", -1) != -1) {
-            return mIntent.getIntExtra("BLE_CONN", -1);
-        }
-        return -1;
-    }
-
-    /**
-     * Shows the state of the GPS connection
-     * -1 = no changes
-     * 0 = disconnected
-     * 1 = connecting
-     * 2 = connected
-     *
-     * @return the actual state
-     */
-    public int getGpsConnectionState() {
-        if (GpsService.gpsIsConnected)
-            return 2;
-        else return 0;
-    }
-
-    /**
      * Getter method for the actual heart rate.
      *
      * @return The last heart rate received by an intent, -1 if no data is received
      */
     public int getActualHeartRate() {
         //check the received intent for its type
-        if (mIntent != null && mIntent.getIntExtra("BLE_DATA", -1) != -1) {
-            Log.i(TAG, "Integer received: " + mIntent.getIntExtra("BLE_DATA", -1));
-            mgr.mHeartRate = mIntent.getIntExtra("BLE_DATA", -1);
-            MainActivity.getInstance().changeHeartVisualisation();
+        if(mIntent==null || !mIntent.getAction().equals(BluetoothService.ACTION_HEART_RATE_UPDATE)){
+            return mHeartRate;
+        }
+        if (mIntent.getIntExtra(BluetoothService.EXTRA_BLE_DATA, -1) != -1) {
+            Log.i(TAG, "Integer received: " + mIntent.getIntExtra(BluetoothService.EXTRA_BLE_DATA, -1));
+            mgr.mHeartRate = mIntent.getIntExtra(BluetoothService.EXTRA_BLE_DATA, -1);
         }
         return mHeartRate;
     }
@@ -127,9 +99,10 @@ public class DataManager extends BroadcastReceiver {
      * @return The distance between the last location and the current, 0 if no data is received
      */
     public float getActualDistance() {
+        //TODO:
         float distance = 0;
         //check the actual intent for its type
-        if (mIntent != null && mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
+        if (mIntent != null && mIntent.getExtras().getParcelable(GpsService.EXTRA_GPS_DATA) != null) {//check whether parcelable or not
             mgr.mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
             Log.i(TAG, "Parcelable received: " + mActualLocation);
 
@@ -151,6 +124,7 @@ public class DataManager extends BroadcastReceiver {
      * @return The speed if available through Location object, 0.0 if not
      */
     public float getActualSpeed() {
+        //TODO:
         //check the actual intent for its type
         if (mIntent != null && mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
             mgr.mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
@@ -161,26 +135,31 @@ public class DataManager extends BroadcastReceiver {
         return mgr.mSpeed;
     }
 
-    public synchronized ArrayList getScannedDevices() {
-        return scannedDevices;
+    private final BroadcastReceiver mDataReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //make the received intent globally usable
+            if (mgr != null) {
+                mgr.mIntent = intent;
+            }
+            //update the UI
+            notifyAllObservers(intent.getAction());
+        }
+    };
+
+    public void registerReceiver(Context context){
+        context.registerReceiver(mDataReceiver,createIntentFilter());
     }
 
-    public synchronized void addScannedDevice(BluetoothDevice device) {
-        mgr.scannedDevices.add(device);
+    public void unregisterReceiver(Context context){
+        context.unregisterReceiver(mDataReceiver);
     }
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        //make the received intent globally usable
-        if (mgr != null) {
-            mgr.mIntent = intent; //why is mIntent = intent not the same??!!??!?!?!?
-        }
-        //update the UI
-        try {
-            MainActivity.getInstance().updateUI();
-        } catch (Exception e) {
-            //just ignore
-        }
+    private IntentFilter createIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothService.ACTION_HEART_RATE_UPDATE);
+        return intentFilter;
     }
 
     /**
@@ -190,26 +169,5 @@ public class DataManager extends BroadcastReceiver {
         DataManager.mgr = null;
     }
 
-/*
-    public void writeLog(String msg) {
 
-    }
-        File log = new File("sdcard/log.txt");
-        if(!log.exists()){
-            try {
-                log.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(log,true));
-            writer.append(msg);
-            writer.newLine();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-*/
 }

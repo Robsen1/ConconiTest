@@ -1,90 +1,94 @@
 package at.fhooe.mc.conconii;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+
+//TODO: bind to services and übergeb MAC
 
 
 /**
  * The MainActivity displays the actual distance,speed and heart rate.
  */
-public class MainActivity extends Activity {
-    private static MainActivity instance; //singleton
+public class MainActivity extends Activity implements View.OnClickListener, Observer {
+    private static final String TAG = "MainActivity";
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
-    public static boolean testFinished = false;
+    public static boolean mTestFinished = false;
     private float mDistance = 0; //the actual distance since the start in meters
     private boolean mImageSet = true;
+    private static final int REQUEST_ENABLE_BT = 1;
+
+    private BluetoothService mBluetoothService = null;
+    private ServiceConnection mBluetoothServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mBluetoothService = ((BluetoothService.LocalBinder) service).getService();
+            mBluetoothService.initialize();
+            //scanning...
+            //TODO: scanning activity
+            //connectGatt...
+            mBluetoothService.connect("MAC");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mBluetoothService = null;
+        }
+    };
+    private ServiceConnection mGpsServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            //TODO: GPS connection
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+    private BluetoothManager mBluetoothManager = null;
+    private BluetoothAdapter mBluetoothAdapter = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        instance = this;
-        DataManager.getInstance(); //initial Singleton creation
-        //TODO: only for testing purposes
-        startService(new Intent(getApplicationContext(), GpsService.class));
-        startService(new Intent(getApplicationContext(), BluetoothService.class));
 
-        View startscreenView = findViewById(R.id.startscreen_backLayout_vertical);
-
-        // hide the quit button
+        Log.i(TAG, "onCreate()");
         Button quitButton = (Button) findViewById(R.id.mainActivity_button_quit);
-        quitButton.setVisibility(View.GONE);
+        quitButton.setOnClickListener(this);
 
-        //startscreen spinner, seek and button
-
-        //spinner with the device names of the scanned dvices (from DataManager - scannedDevices ArrayList<BluetoothDevice>)
-        Spinner sensorSpinner = (Spinner) findViewById(R.id.startscreen_heartRateSensors_spinner);
-        ArrayList<String> deviceNames = new ArrayList<>();
-
-        for (int i = 0; i < DataManager.getInstance().getScannedDevices().toArray().length; i++) {
-            BluetoothDevice device = (BluetoothDevice) DataManager.getInstance().getScannedDevices().get(i);
-            deviceNames.add(device.getName());
+        if(enableBluetooth()){
+            DataManager.getInstance().registerReceiver(getApplicationContext());
+            //bindService(new Intent(this,GpsService.class),mGpsServiceConnection,BIND_AUTO_CREATE);
+            //TODO:scan for devices...
+            bindService(new Intent(this, DataManager.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
         }
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, deviceNames);
-        sensorSpinner.setAdapter(spinnerAdapter);
-        sensorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                BluetoothDevice chosenDevice = (BluetoothDevice) DataManager.getInstance().getScannedDevices().remove(position);
-                DataManager.getInstance().getScannedDevices().add(0, chosenDevice);
-                BluetoothService.stopScan=true;
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
-
-        SeekBar startSpeedSeekBar = (SeekBar) findViewById(R.id.startscreen_startspeed_seekBar);
-        Button startButton = (Button) findViewById(R.id.startscreen_button_start);
+        else finish();
     }
+
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        //TODO: start fragment and put button logic into it
-    }
-
-    /**
-     * called to get the MainActivity's actual object.
-     *
-     * @return the MainActivity's instance
-     */
-    public synchronized static MainActivity getInstance() {
-        return MainActivity.instance;
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // User chose not to enable Bluetooth.
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
+            finish();
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
@@ -92,39 +96,31 @@ public class MainActivity extends Activity {
      * Updated values are the distance,speed and heart rate.
      * The update interval depends on the caller, each call is an update with the actual data.
      */
-    public void updateUI() {
+    public void updateUI(String msg) {
         DataManager mgr = DataManager.getInstance();
-        if (mgr == null) return; //possible to delete?
-
-        TextView log1 = (TextView) findViewById(R.id.mainActivity_text_distance);
-        TextView log2 = (TextView) findViewById(R.id.mainActivity_text_speed);
-        TextView log3 = (TextView) findViewById(R.id.mainActivity_text_heartRate);
-        ImageView bleStatus = (ImageView) findViewById(R.id.mainActivity_image_BLEconnected);
-        ImageView gpsStatus = (ImageView) findViewById(R.id.mainActivity_image_GPSconnected);
+        if (mgr == null) return;
 
         //update values
-        mDistance += mgr.getActualDistance(); //increase distance
-        log1.setText(String.valueOf(mDistance));
-        log2.setText(String.valueOf(mgr.getActualSpeed()));
-        log3.setText(String.valueOf(mgr.getActualHeartRate()));
+        if (msg.equals(GpsService.ACTION_LOCATION_UPDATE)) {
+            TextView log1 = (TextView) findViewById(R.id.mainActivity_text_distance);
+            TextView log2 = (TextView) findViewById(R.id.mainActivity_text_speed);
 
-        //display connection state
-        int color=getConnectionStateColor(mgr.getBleConnectionState());
-        if (color != -1) {
-            bleStatus.setColorFilter(color);
+            mDistance += mgr.getActualDistance(); //increase distance
+            log1.setText(String.valueOf(mDistance));
+            log2.setText(String.valueOf(mgr.getActualSpeed()));
+
+            //add a measurement point to the ArrayList
+            int intDistance = (int) mDistance;
+            if (intDistance % STORE_PERIOD > 0 && intDistance % STORE_PERIOD < 7) {
+                mgr.addData(new ActualData());
+                log1.setText("addData:" + mDistance);
+            }
         }
-        color=getConnectionStateColor(mgr.getGpsConnectionState());
-        if(color!=-1){
-            gpsStatus.setColorFilter(color);
-        }
+        if (msg.equals(BluetoothService.ACTION_HEART_RATE_UPDATE)) {
+            TextView log3 = (TextView) findViewById(R.id.mainActivity_text_heartRate);
 
-
-        //add a measurement point to the ArrayList
-        //TODO: fix issue that data is not added in the given period
-        int intDistance = (int) mDistance;
-        if (intDistance % STORE_PERIOD == 0 && intDistance != 0) {
-            mgr.addData(new ActualData());
-            log1.setText("addData:" + mDistance);
+            log3.setText(String.valueOf(mgr.getActualHeartRate()));
+            changeHeartVisualisation();
         }
     }
 
@@ -132,33 +128,60 @@ public class MainActivity extends Activity {
         ImageView v = (ImageView) findViewById(R.id.mainActivity_image_HeartRate);
         if (mImageSet) {
             v.setImageResource(R.drawable.ic_favorite_border_black_48dp);
-            mImageSet=false;
+            mImageSet = false;
         } else {
             v.setImageResource(R.drawable.ic_favorite_48pt_3x);
-            mImageSet=true;
+            mImageSet = true;
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        DataManager.getInstance().unregisterReceiver(getApplicationContext());
+        DataManager.getInstance().finalize();
     }
 
 
-    public int getConnectionStateColor(int state) {
-        int color = -1;
-        switch (state) {
-            case 0:
-                color = Color.argb(255, 255, 0, 0); //disconnected red
-                break;
-            case 1: color = Color.argb(255, 255, 255, 0); //connecting yellow
-                break;
-            case 2:
-                color = Color.argb(255, 0, 255, 0); //connected green
-                break;
-            case 3:color = Color.argb(255, 0, 0, 255); //disconnecting blue
-                break;
+    @Override
+    public void onClick(View v) {
+        mTestFinished = true;
+    }
+
+    @Override
+    public void update() {
+        //get new values
+    }
+
+    @Override
+    public void update(String msg) {
+        updateUI(msg);
+
+        if (msg.equals(BluetoothService.ACTION_GATT_CONNECTED)) {
+            //updateConnectionStatus - red or green
         }
-        return color;
     }
+
+    private boolean enableBluetooth() {
+        //TODO: put this method into Bluetoothscan
+
+        if (mBluetoothManager == null) {
+            mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            if (mBluetoothManager == null) {
+                Log.e(TAG, "Unable to initialize BluetoothManager.");
+                return false;
+            }
+        }
+        if (mBluetoothAdapter == null) {
+            Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
+            return false;
+        }
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+        return true;
+    }
+
 }

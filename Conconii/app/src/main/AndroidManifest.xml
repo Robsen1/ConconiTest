@@ -3,8 +3,8 @@
     package="at.fhooe.mc.conconii">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <application
         android:allowBackup="true"
@@ -37,12 +37,14 @@
                 android:value="at.fhooe.mc.conconii.MainActivity" />
         </activity>
 
-        <service android:name="GpsService"></service>
-        <service android:name="BluetoothService"></service>
+        <service
+            android:name="GpsService"
+            android:exported="false"
+            ></service>
 
-        <receiver
-            android:name=".DataManager"
-            android:exported="false"></receiver>
+        <service
+            android:name="BluetoothService"
+            android:exported="false"></service>
 
     </application>
 
