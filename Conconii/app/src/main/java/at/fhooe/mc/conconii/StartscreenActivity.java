@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,38 +40,22 @@ import java.util.ArrayList;
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
 public class StartscreenActivity extends ListActivity {
-    private DeviceListAdapter mDeviceListAdapter=null;
-    private BluetoothAdapter mBluetoothAdapter=null;
+    private static final String TAG = "StartscreenActivity";
+    private DeviceListAdapter mDeviceListAdapter = null;
+    private BluetoothAdapter mBluetoothAdapter = null;
     private boolean mScanning;
     private Handler mHandler;
 
     private static final int REQUEST_ENABLE_BT = 1;
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
+    private BluetoothManager mBluetoothManager = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mHandler = new Handler();
-
-        // Use this check to determine whether BLE is supported on the device.  Then you can
-        // selectively disable BLE-related features.
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT).show();
-        }
-
-        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
-        // BluetoothAdapter through BluetoothManager.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-
-        // Checks if Bluetooth is supported on the device.
-        if (mBluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        startEnableBluetoothDialog();
     }
 
     @Override
@@ -80,13 +65,13 @@ public class StartscreenActivity extends ListActivity {
         // Initializes list view adapter.
         mDeviceListAdapter = new DeviceListAdapter();
         setListAdapter(mDeviceListAdapter);
-        scanLeDevice(true);
+        scanForDevices(true);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        scanLeDevice(false);
+        scanForDevices(false);
         mDeviceListAdapter.clear();
     }
 
@@ -94,16 +79,17 @@ public class StartscreenActivity extends ListActivity {
     protected void onListItemClick(ListView l, View v, int position, long id) {
         final BluetoothDevice device = mDeviceListAdapter.getDevice(position);
         if (device == null) return;
-        final Intent intent = new Intent(this, MainActivity.class);
+        final Intent intent = new Intent();
         intent.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+        setResult(2, intent); //still hardcoded
         if (mScanning) {
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
             mScanning = false;
         }
-        startActivity(intent);
+        finish();
     }
 
-    private void scanLeDevice(final boolean enable) {
+    private void scanForDevices(final boolean enable) {
         if (enable) {
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
@@ -135,7 +121,7 @@ public class StartscreenActivity extends ListActivity {
         }
 
         public void addDevice(BluetoothDevice device) {
-            if(!mDevices.contains(device)) {
+            if (!mDevices.contains(device)) {
                 mDevices.add(device);
             }
         }
@@ -159,8 +145,8 @@ public class StartscreenActivity extends ListActivity {
         }
 
         @Override
-        public long getItemId(int i) {
-            return i;
+        public long getItemId(int position) {
+            return position;
         }
 
         @Override
@@ -187,6 +173,31 @@ public class StartscreenActivity extends ListActivity {
 
             return view;
         }
+    }
+
+    private boolean startEnableBluetoothDialog() {
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT).show();
+        }
+
+        if (mBluetoothManager == null) {
+            mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            if (mBluetoothManager == null) {
+                Log.e(TAG, "Unable to initialize BluetoothManager.");
+                return false;
+            }
+        }
+        mBluetoothAdapter = mBluetoothManager.getAdapter();
+        if (mBluetoothAdapter == null) {
+            Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
+            return false;
+        }
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+        return true;
     }
 
     // Device scan callback.

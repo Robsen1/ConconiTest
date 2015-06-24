@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 //TODO: bind to services and übergeb MAC
@@ -26,7 +28,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     private static final String TAG = "MainActivity";
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
     public static final String EXTRAS_DEVICE_NAME = "bibibi";
-    public static final String EXTRAS_DEVICE_ADDRESS ="bobobo" ;
+    public static final String EXTRAS_DEVICE_ADDRESS = "bobobo";
     public static boolean mTestFinished = false;
     private float mDistance = 0; //the actual distance since the start in meters
     private boolean mImageSet = true;
@@ -38,10 +40,8 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         public void onServiceConnected(ComponentName name, IBinder service) {
             mBluetoothService = ((BluetoothService.LocalBinder) service).getService();
             mBluetoothService.initialize();
-            //scanning...
-            //TODO: scanning activity
             //connectGatt...
-            mBluetoothService.connect("MAC");
+            mBluetoothService.connect(mDeviceAddress);
         }
 
         @Override
@@ -62,6 +62,8 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     };
     private BluetoothManager mBluetoothManager = null;
     private BluetoothAdapter mBluetoothAdapter = null;
+    private String mDeviceAddress = null;
+    private boolean mIsEnabled = false;
 
 
     @Override
@@ -72,16 +74,19 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         Log.i(TAG, "onCreate()");
         Button quitButton = (Button) findViewById(R.id.mainActivity_button_quit);
         quitButton.setOnClickListener(this);
+        DataManager.getInstance().registerReceiver(getApplicationContext());
 
-        if(enableBluetooth()){
-            DataManager.getInstance().registerReceiver(getApplicationContext());
-            //bindService(new Intent(this,GpsService.class),mGpsServiceConnection,BIND_AUTO_CREATE);
-            startActivity(new Intent(this,StartscreenActivity.class));
-            bindService(new Intent(this, DataManager.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
-        }
-        else finish();
+        startEnableBluetoothDialog();
     }
 
+    private void startServices() {
+        //bindService(new Intent(this,GpsService.class),mGpsServiceConnection,BIND_AUTO_CREATE);
+        startActivityForResult(new Intent(MainActivity.this, StartscreenActivity.class), 7); //still hardcoded
+
+        //FALSCHER PLATZ HIER gehört in onresult!!!!!!!!!
+        bindService(new Intent(this, DataManager.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
+
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -89,6 +94,14 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish();
             return;
+        }
+        else if(resultCode==Activity.RESULT_OK){
+            startServices();
+        }
+
+        if (resultCode == 2) {
+            Intent intent = getIntent();
+            mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -140,6 +153,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unbindService(mBluetoothServiceConnection);
         DataManager.getInstance().unregisterReceiver(getApplicationContext());
         DataManager.getInstance().finalize();
     }
@@ -164,8 +178,10 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         }
     }
 
-    private boolean enableBluetooth() {
-        //TODO: put this method into Bluetoothscan
+    private boolean startEnableBluetoothDialog() {
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT).show();
+        }
 
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -174,6 +190,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
                 return false;
             }
         }
+        mBluetoothAdapter = mBluetoothManager.getAdapter();
         if (mBluetoothAdapter == null) {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
@@ -182,6 +199,9 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+        else{
+            startServices();
         }
         return true;
     }

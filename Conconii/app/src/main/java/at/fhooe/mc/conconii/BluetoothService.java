@@ -109,6 +109,7 @@ public class BluetoothService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        Log.i(TAG,"onBind()");
         return mBinder;
     }
     public boolean initialize() {
