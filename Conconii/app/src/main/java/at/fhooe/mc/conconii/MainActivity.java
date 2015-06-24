@@ -25,6 +25,8 @@ import android.widget.TextView;
 public class MainActivity extends Activity implements View.OnClickListener, Observer {
     private static final String TAG = "MainActivity";
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
+    public static final String EXTRAS_DEVICE_NAME = "bibibi";
+    public static final String EXTRAS_DEVICE_ADDRESS ="bobobo" ;
     public static boolean mTestFinished = false;
     private float mDistance = 0; //the actual distance since the start in meters
     private boolean mImageSet = true;
@@ -74,7 +76,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         if(enableBluetooth()){
             DataManager.getInstance().registerReceiver(getApplicationContext());
             //bindService(new Intent(this,GpsService.class),mGpsServiceConnection,BIND_AUTO_CREATE);
-            //TODO:scan for devices...
+            startActivity(new Intent(this,StartscreenActivity.class));
             bindService(new Intent(this, DataManager.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
         }
         else finish();
