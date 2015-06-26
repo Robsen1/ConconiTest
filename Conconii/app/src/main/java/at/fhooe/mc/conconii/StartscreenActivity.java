@@ -50,6 +50,7 @@ public class StartscreenActivity extends ListActivity {
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
     private BluetoothManager mBluetoothManager = null;
+    private BluetoothDevice mDevice=null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,11 +78,10 @@ public class StartscreenActivity extends ListActivity {
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
-        final BluetoothDevice device = mDeviceListAdapter.getDevice(position);
-        if (device == null) return;
-        final Intent intent = new Intent();
-        intent.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-        setResult(2, intent); //still hardcoded
+         mDevice = mDeviceListAdapter.getDevice(position);
+        if (mDevice == null) return;
+        MainActivity.EXTRAS_DEVICE_NAME=mDevice.getName();
+        MainActivity.EXTRAS_DEVICE_ADDRESS=mDevice.getAddress();
         if (mScanning) {
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
             mScanning = false;

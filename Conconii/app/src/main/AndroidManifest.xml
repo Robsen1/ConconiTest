@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="at.fhooe.mc.conconii" >
+    package="at.fhooe.mc.conconii"
+    android:versionCode="1"
+    android:versionName="1.0">
 
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -11,10 +16,10 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,9 +27,17 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".StartscreenActivity"
+            android:label="@string/title_activity_startscreen"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="at.fhooe.mc.conconii.MainActivity" />
+        </activity>
+        <activity
             android:name=".TutorialActivity"
             android:label="@string/title_activity_tutorial"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="at.fhooe.mc.conconii.MainActivity" />
@@ -32,19 +45,12 @@
         <activity
             android:name=".EvaluationActivity"
             android:label="@string/title_activity_evaluation"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="at.fhooe.mc.conconii.MainActivity" />
         </activity>
-        <activity
-            android:name=".StartscreenActivity"
-            android:label="@string/title_activity_startscreen"
-            android:parentActivityName=".MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="at.fhooe.mc.conconii.MainActivity" />
-        </activity>
+
 
         <service
             android:name=".GpsService"

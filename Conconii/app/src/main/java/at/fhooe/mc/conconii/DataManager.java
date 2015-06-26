@@ -143,6 +143,7 @@ public class DataManager extends Observable {
                 mgr.mIntent = intent;
             }
             //update the UI
+            Log.i(TAG,"received Intent going to update Observers");
             notifyAllObservers(intent.getAction());
         }
     };

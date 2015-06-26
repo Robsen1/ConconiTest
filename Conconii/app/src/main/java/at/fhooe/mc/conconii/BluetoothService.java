@@ -128,7 +128,7 @@ public class BluetoothService extends Service {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
-
+        Log.i(TAG,"Bluetoothservice initialized");
         return true;
     }
 

@@ -18,30 +18,29 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-//TODO: bind to services and übergeb MAC
-
-
 /**
  * The MainActivity displays the actual distance,speed and heart rate.
  */
 public class MainActivity extends Activity implements View.OnClickListener, Observer {
     private static final String TAG = "MainActivity";
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
-    public static final String EXTRAS_DEVICE_NAME = "bibibi";
-    public static final String EXTRAS_DEVICE_ADDRESS = "bobobo";
+    public static String EXTRAS_DEVICE_NAME = null;
+    public static String EXTRAS_DEVICE_ADDRESS = null;
     public static boolean mTestFinished = false;
     private float mDistance = 0; //the actual distance since the start in meters
     private boolean mImageSet = true;
     private static final int REQUEST_ENABLE_BT = 1;
+    private static final int REQUEST_GET_DEVICE = 2;
 
     private BluetoothService mBluetoothService = null;
     private ServiceConnection mBluetoothServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.i(TAG, "onserviceconected");
             mBluetoothService = ((BluetoothService.LocalBinder) service).getService();
             mBluetoothService.initialize();
             //connectGatt...
-            mBluetoothService.connect(mDeviceAddress);
+            mBluetoothService.connect(EXTRAS_DEVICE_ADDRESS);
         }
 
         @Override
@@ -70,21 +69,15 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Log.i(TAG, "onCreate()");
         Button quitButton = (Button) findViewById(R.id.mainActivity_button_quit);
         quitButton.setOnClickListener(this);
+
         DataManager.getInstance().registerReceiver(getApplicationContext());
+        DataManager.getInstance().attach(this);
 
         startEnableBluetoothDialog();
-    }
 
-    private void startServices() {
-        //bindService(new Intent(this,GpsService.class),mGpsServiceConnection,BIND_AUTO_CREATE);
-        startActivityForResult(new Intent(MainActivity.this, StartscreenActivity.class), 7); //still hardcoded
-
-        //FALSCHER PLATZ HIER gehört in onresult!!!!!!!!!
-        bindService(new Intent(this, DataManager.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
 
     }
 
@@ -95,15 +88,19 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
             finish();
             return;
         }
-        else if(resultCode==Activity.RESULT_OK){
-            startServices();
+        else if(requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK){
+            startScan();
         }
-
-        if (resultCode == 2) {
-            Intent intent = getIntent();
-            mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
+        if (requestCode == REQUEST_GET_DEVICE && resultCode == Activity.RESULT_OK) {
+            mDeviceAddress = data.getStringExtra(EXTRAS_DEVICE_ADDRESS);
+            Log.i(TAG, "Attempting to bind services");
+            bindService(new Intent(this, BluetoothService.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void startScan() {
+        startActivityForResult(new Intent(MainActivity.this, StartscreenActivity.class), REQUEST_GET_DEVICE);
     }
 
     /**
@@ -126,7 +123,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
 
             //add a measurement point to the ArrayList
             int intDistance = (int) mDistance;
-            if (intDistance % STORE_PERIOD > 0 && intDistance % STORE_PERIOD < 7) {
+            if (intDistance % STORE_PERIOD > 0 && intDistance % STORE_PERIOD < 10) {
                 mgr.addData(new ActualData());
                 log1.setText("addData:" + mDistance);
             }
@@ -172,7 +169,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     @Override
     public void update(String msg) {
         updateUI(msg);
-
+        Log.i(TAG, "update");
         if (msg.equals(BluetoothService.ACTION_GATT_CONNECTED)) {
             //updateConnectionStatus - red or green
         }
@@ -200,9 +197,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
-        else{
-            startServices();
-        }
+        else startScan();
         return true;
     }
 
