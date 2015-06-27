@@ -8,16 +8,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,15 +24,14 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements Observer {
     private static final String TAG = "MainActivity";
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
-    protected int mStartspeed = 6;
+    private static final int REQUEST_ENABLE_BT = 1;
+    private static final int REQUEST_GET_DEVICE = 2;
     public static String EXTRAS_DEVICE_NAME = "conconii.ble.device.name";
     public static String EXTRAS_DEVICE_ADDRESS = "conconii.ble.device.address";
     public static boolean mTestFinished = false;
+    protected int mStartspeed = 6;
     private float mDistance = 0; //the actual distance since the start in meters
     private boolean mImageSet = true;
-    private static final int REQUEST_ENABLE_BT = 1;
-    private static final int REQUEST_GET_DEVICE = 2;
-
     private BluetoothService mBluetoothService = null;
     private ServiceConnection mBluetoothServiceConnection = new ServiceConnection() {
         @Override
@@ -92,8 +87,7 @@ public class MainActivity extends Activity implements Observer {
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish();
             return;
-        }
-        else if(requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK){
+        } else if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
             startScan();
         }
         if (requestCode == REQUEST_GET_DEVICE && resultCode == Activity.RESULT_OK) {
@@ -201,8 +195,7 @@ public class MainActivity extends Activity implements Observer {
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-        else startScan();
+        } else startScan();
         return true;
     }
 

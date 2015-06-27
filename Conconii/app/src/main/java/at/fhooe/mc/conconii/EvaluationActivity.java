@@ -1,32 +1,22 @@
 package at.fhooe.mc.conconii;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.*;
-import java.text.*;
-
-import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.Legend.LegendForm;
-import com.github.mikephil.charting.components.LimitLine;
-import com.github.mikephil.charting.components.LimitLine.LimitLabelPosition;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.DataSet;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-
 import com.github.mikephil.charting.utils.ValueFormatter;
 
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 public class EvaluationActivity extends Activity {
@@ -113,9 +103,6 @@ public class EvaluationActivity extends Activity {
         //set text bpm
         TextView textYAxis = (TextView) findViewById(R.id.evaluation_yAxis_text);
 //        textYAxis.layout(yAxisXPos, 0, yAxisYPos, 0);
-
-
-
 
 
     }
