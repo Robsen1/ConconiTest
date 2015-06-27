@@ -9,13 +9,24 @@ public class ActualData {
     private int mHeartRate = 0;
     private float mDistance = 0f;
     private float mSpeed = 0f;
+    private float mTargetSpeed = 0f;
 
     public ActualData() {
         //store all current values
-        DataManager mgr=DataManager.getInstance();
+        DataManager mgr = DataManager.getInstance();
         this.mHeartRate = mgr.getActualHeartRate();
         this.mDistance = mgr.getActualDistance();
         this.mSpeed = mgr.getActualSpeed();
+        //if the startspeed is 6km/h!--------------------!
+        this.mTargetSpeed = 6 + mDistance / 200 * 0.5f;
+    }
+
+    public ActualData(int _heartRate,float _speed, float _distance) {
+        this.mHeartRate = _heartRate;
+        this.mDistance = _distance;
+        this.mSpeed = _speed;
+        //if the startspeed is 6km/h!--------------------!
+        this.mTargetSpeed = 6 + mDistance / 200 * 0.5f;
     }
 
     //Getter methods
@@ -29,5 +40,9 @@ public class ActualData {
 
     public float getSpeed() {
         return mSpeed;
+    }
+
+    public float getTargetSpeed() {
+        return mTargetSpeed;
     }
 }
