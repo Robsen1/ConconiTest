@@ -9,11 +9,12 @@ public class Observable {
     private ArrayList<Observer> mObservers = new ArrayList<>();
 
     public void attach(Observer observer){
+        if(!mObservers.contains(observer))
         mObservers.add(observer);
     }
 
     public void detach(Observer observer){
-        mObservers.add(observer);
+        mObservers.remove(observer);
     }
 
     public void notifyAllObservers(){

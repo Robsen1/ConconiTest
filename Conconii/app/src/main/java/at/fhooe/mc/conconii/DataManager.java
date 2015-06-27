@@ -19,7 +19,7 @@ import java.util.ArrayList;
  */
 
 
-//TODO: change gps implementation
+//TODO: App chrashes at unregister receiver
 
 public class DataManager extends Observable {
     private static final String TAG = "DataManager";
@@ -46,12 +46,6 @@ public class DataManager extends Observable {
         }
         return DataManager.mgr;
     }
-
-
-
-    /**
-     * public constructor because otherwise the broadcast receiver can't be registered statically int the manifest
-     */
 
     private DataManager() {
         //do stuff once
@@ -99,11 +93,10 @@ public class DataManager extends Observable {
      * @return The distance between the last location and the current, 0 if no data is received
      */
     public float getActualDistance() {
-        //TODO:
         float distance = 0;
         //check the actual intent for its type
         if (mIntent != null && mIntent.getExtras().getParcelable(GpsService.EXTRA_GPS_DATA) != null) {//check whether parcelable or not
-            mgr.mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
+            mgr.mActualLocation = mIntent.getExtras().getParcelable(GpsService.EXTRA_GPS_DATA);
             Log.i(TAG, "Parcelable received: " + mActualLocation);
 
             //calculate new distance in meters
@@ -124,10 +117,9 @@ public class DataManager extends Observable {
      * @return The speed if available through Location object, 0.0 if not
      */
     public float getActualSpeed() {
-        //TODO:
         //check the actual intent for its type
-        if (mIntent != null && mIntent.getExtras().getParcelable("GPS_DATA") != null) {//check whether parcelable or not
-            mgr.mActualLocation = mIntent.getExtras().getParcelable("GPS_DATA");
+        if (mIntent != null && mIntent.getExtras().getParcelable(GpsService.EXTRA_GPS_DATA) != null) {//check whether parcelable or not
+            mgr.mActualLocation = mIntent.getExtras().getParcelable(GpsService.EXTRA_GPS_DATA);
         }
         //calculate actual speed in km/h
         if (mActualLocation != null)
@@ -143,7 +135,7 @@ public class DataManager extends Observable {
                 mgr.mIntent = intent;
             }
             //update the UI
-            Log.i(TAG,"received Intent going to update Observers");
+            Log.i(TAG,"Received Intent, going to update Observers");
             notifyAllObservers(intent.getAction());
         }
     };
@@ -160,6 +152,11 @@ public class DataManager extends Observable {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothService.ACTION_HEART_RATE_UPDATE);
+        intentFilter.addAction(BluetoothService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothService.ACTION_INVALID_DEVICE);
+        intentFilter.addAction(GpsService.ACTION_LOCATION_UPDATE);
+        intentFilter.addAction(GpsService.ACTION_PROVIDER_ENABLED);
+        intentFilter.addAction(GpsService.ACTION_PROVIDER_DISABLED);
         return intentFilter;
     }
 
