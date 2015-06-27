@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".StartscreenActivity"
+            android:name=".ScanActivity"
             android:label="@string/title_activity_startscreen"
             android:parentActivityName=".MainActivity">
             <meta-data

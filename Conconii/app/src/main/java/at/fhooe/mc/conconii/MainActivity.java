@@ -8,8 +8,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.media.audiofx.BassBoost;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -24,23 +27,28 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements View.OnClickListener, Observer {
     private static final String TAG = "MainActivity";
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
-    public static String EXTRAS_DEVICE_NAME = null;
-    public static String EXTRAS_DEVICE_ADDRESS = null;
+    private static final int REQUEST_ENABLE_GPS = 3;
+    public static String EXTRAS_DEVICE_NAME = "conconii.ble.device.name";
+    public static String EXTRAS_DEVICE_ADDRESS = "conconii.ble.device.address";
     public static boolean mTestFinished = false;
     private float mDistance = 0; //the actual distance since the start in meters
     private boolean mImageSet = true;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_GET_DEVICE = 2;
+    private BluetoothManager mBluetoothManager = null;
+    private BluetoothAdapter mBluetoothAdapter = null;
+    private String mDeviceAddress = null;
+    private String mDeviceName = null;
+    private boolean mIsDeviceConnected=false;
 
     private BluetoothService mBluetoothService = null;
     private ServiceConnection mBluetoothServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(TAG, "onserviceconected");
+            Log.i(TAG, "BluetoothService connected");
             mBluetoothService = ((BluetoothService.LocalBinder) service).getService();
             mBluetoothService.initialize();
-            //connectGatt...
-            mBluetoothService.connect(EXTRAS_DEVICE_ADDRESS);
+            mBluetoothService.connect(mDeviceAddress);
         }
 
         @Override
@@ -48,37 +56,43 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
             mBluetoothService = null;
         }
     };
+    private GpsService mGpsService=null;
+    private boolean mIsGpsEnabled=false;
     private ServiceConnection mGpsServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            //TODO: GPS connection
+            Log.i(TAG,"GpsService connected");
+            mGpsService = ((GpsService.LocalBinder) service).getService();
+            mGpsService.requestUpdates();
+            if(!mGpsService.isEnabled())
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+            //TODO: request updates after user enabled gps
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
         }
     };
-    private BluetoothManager mBluetoothManager = null;
-    private BluetoothAdapter mBluetoothAdapter = null;
-    private String mDeviceAddress = null;
-    private boolean mIsEnabled = false;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate()");
+
         Button quitButton = (Button) findViewById(R.id.mainActivity_button_quit);
         quitButton.setOnClickListener(this);
+        bindService(new Intent(this, GpsService.class), mGpsServiceConnection, BIND_AUTO_CREATE);
+        enableBluetoothAndStartScan();
+    }
 
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         DataManager.getInstance().registerReceiver(getApplicationContext());
         DataManager.getInstance().attach(this);
-
-        startEnableBluetoothDialog();
-
-
     }
 
     @Override
@@ -87,20 +101,20 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish();
             return;
-        }
-        else if(requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK){
+        } else if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
             startScan();
         }
         if (requestCode == REQUEST_GET_DEVICE && resultCode == Activity.RESULT_OK) {
             mDeviceAddress = data.getStringExtra(EXTRAS_DEVICE_ADDRESS);
-            Log.i(TAG, "Attempting to bind services");
+            mDeviceName = data.getStringExtra(EXTRAS_DEVICE_NAME);
+            Log.i(TAG, "Attempting to bind BluetoothService");
             bindService(new Intent(this, BluetoothService.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void startScan() {
-        startActivityForResult(new Intent(MainActivity.this, StartscreenActivity.class), REQUEST_GET_DEVICE);
+        startActivityForResult(new Intent(MainActivity.this, ScanActivity.class), REQUEST_GET_DEVICE);
     }
 
     /**
@@ -134,6 +148,28 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
             log3.setText(String.valueOf(mgr.getActualHeartRate()));
             changeHeartVisualisation();
         }
+
+        if (msg.equals(BluetoothService.ACTION_GATT_CONNECTED)) {
+            ImageView status = (ImageView) findViewById(R.id.mainActivity_image_BLEconnected);
+            status.setColorFilter(Color.GREEN);
+            mIsDeviceConnected=true;
+        }
+
+        if (msg.equals(BluetoothService.ACTION_GATT_DISCONNECTED)) {
+            ImageView status = (ImageView) findViewById(R.id.mainActivity_image_BLEconnected);
+            status.setColorFilter(Color.RED);
+            mIsDeviceConnected=false;
+        }
+
+        if(msg.equals(GpsService.ACTION_PROVIDER_ENABLED)){
+            ImageView status = (ImageView) findViewById(R.id.mainActivity_image_GPSconnected);
+            status.setColorFilter(Color.GREEN);
+        }
+
+        if(msg.equals(GpsService.ACTION_PROVIDER_DISABLED)){
+            ImageView status = (ImageView) findViewById(R.id.mainActivity_image_GPSconnected);
+            status.setColorFilter(Color.RED);
+        }
     }
 
     public void changeHeartVisualisation() {
@@ -150,8 +186,14 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mBluetoothServiceConnection);
+        //cleanup
+        if(mGpsService!=null){
+            unbindService(mGpsServiceConnection);
+        }
+        if (mBluetoothService != null)
+            unbindService(mBluetoothServiceConnection);
         DataManager.getInstance().unregisterReceiver(getApplicationContext());
+        DataManager.getInstance().detach(this);
         DataManager.getInstance().finalize();
     }
 
@@ -159,6 +201,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     @Override
     public void onClick(View v) {
         mTestFinished = true;
+        finish();
     }
 
     @Override
@@ -168,14 +211,16 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
 
     @Override
     public void update(String msg) {
-        updateUI(msg);
-        Log.i(TAG, "update");
-        if (msg.equals(BluetoothService.ACTION_GATT_CONNECTED)) {
-            //updateConnectionStatus - red or green
+        if (msg.equals(BluetoothService.ACTION_INVALID_DEVICE)) {
+            Toast.makeText(this, "You have to use a device which is able to display the Heart Rate...", Toast.LENGTH_LONG);
+            return;
         }
+        updateUI(msg);
+
+
     }
 
-    private boolean startEnableBluetoothDialog() {
+    private boolean enableBluetoothAndStartScan() {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT).show();
         }
@@ -196,8 +241,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-        else startScan();
+        } else startScan();
         return true;
     }
 
