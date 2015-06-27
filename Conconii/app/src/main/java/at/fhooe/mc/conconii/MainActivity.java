@@ -9,14 +9,15 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.media.audiofx.BassBoost;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,10 +25,9 @@ import android.widget.Toast;
 /**
  * The MainActivity displays the actual distance,speed and heart rate.
  */
-public class MainActivity extends Activity implements View.OnClickListener, Observer {
+public class MainActivity extends Activity implements Observer {
     private static final String TAG = "MainActivity";
     private static final int STORE_PERIOD = 50; //interval for storing the data in meters
-    private static final int REQUEST_ENABLE_GPS = 3;
     public static String EXTRAS_DEVICE_NAME = "conconii.ble.device.name";
     public static String EXTRAS_DEVICE_ADDRESS = "conconii.ble.device.address";
     public static boolean mTestFinished = false;
@@ -39,9 +39,10 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     private BluetoothAdapter mBluetoothAdapter = null;
     private String mDeviceAddress = null;
     private String mDeviceName = null;
-    private boolean mIsDeviceConnected=false;
+    private boolean mIsDeviceConnected = false;
 
     private BluetoothService mBluetoothService = null;
+    private boolean mIsBleServiceBound=false;
     private ServiceConnection mBluetoothServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -56,17 +57,17 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
             mBluetoothService = null;
         }
     };
-    private GpsService mGpsService=null;
-    private boolean mIsGpsEnabled=false;
+    private GpsService mGpsService = null;
+    private boolean mIsGpsEnabled = false;
+    private boolean mIsGpsServiceBound=false;
     private ServiceConnection mGpsServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(TAG,"GpsService connected");
+            Log.i(TAG, "GpsService connected");
             mGpsService = ((GpsService.LocalBinder) service).getService();
             mGpsService.requestUpdates();
-            if(!mGpsService.isEnabled())
-            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-            //TODO: request updates after user enabled gps
+            if (!mGpsService.isEnabled())
+                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
         }
 
         @Override
@@ -74,25 +75,90 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         }
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate()");
 
-        Button quitButton = (Button) findViewById(R.id.mainActivity_button_quit);
-        quitButton.setOnClickListener(this);
+        DataManager.getInstance().registerReceiver(getApplicationContext());
+        DataManager.getInstance().attach(this);
+
+        final Button restart = (Button) findViewById(R.id.mainActivity_button_quit);
+        restart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinearLayout layout = (LinearLayout) findViewById(R.id.startscreen_backLayout_vertical);
+                if (!layout.isShown()) {
+                    layout.setVisibility(View.VISIBLE);
+                    mDistance = 0;
+                    restart.setText("SCAN FOR DEVICES");
+                    TextView countdown = (TextView) findViewById(R.id.startscreen_text_countdown);
+                    countdown.setText("START");
+
+                } else {
+                    if (mIsBleServiceBound) {
+                        unbindService(mBluetoothServiceConnection);
+                        mIsBleServiceBound = false;
+                    }
+                    startScan();
+                }
+            }
+        });
+        Button tutorial = (Button) findViewById(R.id.startscreen_button_tutorial);
+        tutorial.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, TutorialActivity.class));
+            }
+        });
+        TextView countdown = (TextView) findViewById(R.id.startscreen_text_countdown);
+        countdown.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startCountdown();
+            }
+        });
+
         bindService(new Intent(this, GpsService.class), mGpsServiceConnection, BIND_AUTO_CREATE);
+        mIsGpsServiceBound=true;
         enableBluetoothAndStartScan();
     }
-
 
 
     @Override
     protected void onResume() {
         super.onResume();
-        DataManager.getInstance().registerReceiver(getApplicationContext());
-        DataManager.getInstance().attach(this);
+        LinearLayout layout = (LinearLayout) findViewById(R.id.startscreen_backLayout_vertical);
+        Button quit = (Button) findViewById(R.id.mainActivity_button_quit);
+        layout.setVisibility(View.VISIBLE);
+        quit.setText("SCAN FOR DEVICES");
+    }
+
+    private void startCountdown() {
+        final TextView countdown = (TextView) findViewById(R.id.startscreen_text_countdown);
+        int seconds = 10;
+        seconds++;
+        CountDownTimer timer = new CountDownTimer(seconds * 1000, 900) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                int time = (int) (millisUntilFinished / 1000) - 1;
+                if (time != 0)
+                    countdown.setText(String.valueOf(time));
+                else
+                    countdown.setText("GO!");
+            }
+
+            @Override
+            public void onFinish() {
+                LinearLayout layout = (LinearLayout) findViewById(R.id.startscreen_backLayout_vertical);
+                layout.setVisibility(View.GONE);
+                Button quit= (Button) findViewById(R.id.mainActivity_button_quit);
+                quit.setText("RESTART");
+            }
+        };
+        timer.start();
     }
 
     @Override
@@ -109,6 +175,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
             mDeviceName = data.getStringExtra(EXTRAS_DEVICE_NAME);
             Log.i(TAG, "Attempting to bind BluetoothService");
             bindService(new Intent(this, BluetoothService.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
+            mIsBleServiceBound=true;
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -152,21 +219,21 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
         if (msg.equals(BluetoothService.ACTION_GATT_CONNECTED)) {
             ImageView status = (ImageView) findViewById(R.id.mainActivity_image_BLEconnected);
             status.setColorFilter(Color.GREEN);
-            mIsDeviceConnected=true;
+            mIsDeviceConnected = true;
         }
 
         if (msg.equals(BluetoothService.ACTION_GATT_DISCONNECTED)) {
             ImageView status = (ImageView) findViewById(R.id.mainActivity_image_BLEconnected);
             status.setColorFilter(Color.RED);
-            mIsDeviceConnected=false;
+            mIsDeviceConnected = false;
         }
 
-        if(msg.equals(GpsService.ACTION_PROVIDER_ENABLED)){
+        if (msg.equals(GpsService.ACTION_PROVIDER_ENABLED)) {
             ImageView status = (ImageView) findViewById(R.id.mainActivity_image_GPSconnected);
             status.setColorFilter(Color.GREEN);
         }
 
-        if(msg.equals(GpsService.ACTION_PROVIDER_DISABLED)){
+        if (msg.equals(GpsService.ACTION_PROVIDER_DISABLED)) {
             ImageView status = (ImageView) findViewById(R.id.mainActivity_image_GPSconnected);
             status.setColorFilter(Color.RED);
         }
@@ -187,21 +254,14 @@ public class MainActivity extends Activity implements View.OnClickListener, Obse
     protected void onDestroy() {
         super.onDestroy();
         //cleanup
-        if(mGpsService!=null){
+        if (mIsGpsServiceBound) {
             unbindService(mGpsServiceConnection);
         }
-        if (mBluetoothService != null)
+        if (mIsBleServiceBound)
             unbindService(mBluetoothServiceConnection);
         DataManager.getInstance().unregisterReceiver(getApplicationContext());
         DataManager.getInstance().detach(this);
         DataManager.getInstance().finalize();
-    }
-
-
-    @Override
-    public void onClick(View v) {
-        mTestFinished = true;
-        finish();
     }
 
     @Override

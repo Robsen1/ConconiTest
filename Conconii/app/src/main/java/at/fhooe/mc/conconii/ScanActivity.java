@@ -24,13 +24,16 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -96,6 +99,7 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
     private void scanForDevices(final boolean enable) {
         if (enable) {
+            rotateImage();
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
                 @Override
@@ -115,8 +119,28 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (!mScanning)
+        if (!mScanning) {
             scanForDevices(true);
+        }
+    }
+
+    private void rotateImage() {
+        final ImageView refresh = (ImageView) findViewById(R.id.scanActivity_image_refresh);
+        CountDownTimer timer = new CountDownTimer(SCAN_PERIOD, 100) {
+            int i=1;
+            @Override
+            public void onTick(long millisUntilFinished) {
+                refresh.setRotation(9*i++);
+                refresh.invalidate();
+            }
+
+            @Override
+            public void onFinish() {
+                refresh.setRotation(0);
+                refresh.invalidate();
+            }
+        };
+        timer.start();
     }
 
     // Adapter for holding devices found through scanning.

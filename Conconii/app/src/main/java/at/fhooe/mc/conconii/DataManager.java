@@ -47,12 +47,6 @@ public class DataManager extends Observable {
         return DataManager.mgr;
     }
 
-
-
-    /**
-     * public constructor because otherwise the broadcast receiver can't be registered statically int the manifest
-     */
-
     private DataManager() {
         //do stuff once
     }
