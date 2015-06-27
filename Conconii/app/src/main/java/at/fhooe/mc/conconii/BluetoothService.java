@@ -37,6 +37,8 @@ public class BluetoothService extends Service {
     public static final String ACTION_HEART_RATE_UPDATE = "conconii.ble.heart.rate.update";
     public static final String ACTION_GATT_CONNECTED = "conconii.ble.gatt.connected";
     public static final String EXTRA_BLE_DATA = "conconii.ble.extra.data";
+    public static final String ACTION_GATT_DISCONNECTED = "conconii.ble.gatt.disconnected";
+    public static final String ACTION_INVALID_DEVICE = "conconii.ble.invalid.device";
 
     private BluetoothManager mBluetoothManager=null;
     private BluetoothAdapter mBluetoothAdapter = null;
@@ -52,6 +54,12 @@ public class BluetoothService extends Service {
                 gatt.discoverServices();
                 Log.i(TAG, "GATT connected");
                 Intent i = new Intent(ACTION_GATT_CONNECTED);
+                sendBroadcast(i);
+            }
+            if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+                gatt.discoverServices();
+                Log.i(TAG, "GATT disconnected");
+                Intent i = new Intent(ACTION_GATT_DISCONNECTED);
                 sendBroadcast(i);
             }
         }
@@ -71,15 +79,16 @@ public class BluetoothService extends Service {
             } while (iterator.hasNext() && chara == null);
 
             if (chara != null && chara.getDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION) != null) {
-                Log.i(TAG, "ble heart rate profile available");
+                Log.i(TAG, "BLE Heart-Rate-Profile available");
                 //set notifications for server and client
                 gatt.setCharacteristicNotification(chara, true);
                 BluetoothGattDescriptor desc = chara.getDescriptors().get(0);
                 desc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                 gatt.writeDescriptor(desc);
             } else {
-                Log.i(TAG, "ble heart rate profile NOT available");
-                //TODO: some visuals
+                Log.i(TAG, "BLE Heart-Rate-Profile NOT available");
+                Intent i= new Intent(ACTION_INVALID_DEVICE);
+                sendBroadcast(i);
             }
         }
 
@@ -91,8 +100,6 @@ public class BluetoothService extends Service {
             if ((flag & 0x01) != 0) {
                 format = BluetoothGattCharacteristic.FORMAT_UINT16;
             } else {
-
-
                 format = BluetoothGattCharacteristic.FORMAT_UINT8;
             }
             int heartRate = characteristic.getIntValue(format, 1);
@@ -105,11 +112,8 @@ public class BluetoothService extends Service {
         }
     };
 
-
-
     @Override
     public IBinder onBind(Intent intent) {
-        Log.i(TAG,"onBind()");
         return mBinder;
     }
     public boolean initialize() {
@@ -128,7 +132,7 @@ public class BluetoothService extends Service {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
-        Log.i(TAG,"Bluetoothservice initialized");
+        Log.i(TAG,"BluetoothService initialized");
         return true;
     }
 
@@ -153,7 +157,6 @@ public class BluetoothService extends Service {
                 && mBluetoothGatt != null) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
             if (mBluetoothGatt.connect()) {
-                // mConnectionState = STATE_CONNECTING;
                 return true;
             } else {
                 return false;
@@ -162,10 +165,10 @@ public class BluetoothService extends Service {
 
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {
-            Log.w(TAG, "Device not found.  Unable to connect.");
+            Log.w(TAG, "Device not found.  Unable to isEnabled.");
             return false;
         }
-        // We want to directly connect to the device, so we are setting the autoConnect
+        // We want to directly isEnabled to the device, so we are setting the autoConnect
         // parameter to false.
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         Log.d(TAG, "Trying to create a new connection.");
