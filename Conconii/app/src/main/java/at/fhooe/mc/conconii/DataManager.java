@@ -23,15 +23,29 @@ import java.util.ArrayList;
 
 public class DataManager extends Observable {
     private static final String TAG = "DataManager";
-    private ArrayList<ActualData> mDataList = new ArrayList<>(); //static list for measurement points
     private static DataManager mgr = null; //singleton
-
+    private ArrayList<ActualData> mDataList = new ArrayList<>(); //static list for measurement points
     private Location mLastLocation = null;
     private Location mActualLocation = null;
     private int mHeartRate = 0;
     private float mSpeed = 0;
     private Intent mIntent = null;
+    private final BroadcastReceiver mDataReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //make the received intent globally usable
+            if (mgr != null) {
+                mgr.mIntent = intent;
+            }
+            //update the UI
+            Log.i(TAG, "Received Intent, going to update Observers");
+            notifyAllObservers(intent.getAction());
+        }
+    };
 
+    private DataManager() {
+        //do stuff once
+    }
 
     /**
      * This method is used to get the DataManager instance.
@@ -46,11 +60,6 @@ public class DataManager extends Observable {
         }
         return DataManager.mgr;
     }
-
-    private DataManager() {
-        //do stuff once
-    }
-
 
     /**
      * Getter method for the list of measured points
@@ -77,7 +86,7 @@ public class DataManager extends Observable {
      */
     public int getActualHeartRate() {
         //check the received intent for its type
-        if(mIntent==null || !mIntent.getAction().equals(BluetoothService.ACTION_HEART_RATE_UPDATE)){
+        if (mIntent == null || !mIntent.getAction().equals(BluetoothService.ACTION_HEART_RATE_UPDATE)) {
             return mHeartRate;
         }
         if (mIntent.getIntExtra(BluetoothService.EXTRA_BLE_DATA, -1) != -1) {
@@ -127,24 +136,11 @@ public class DataManager extends Observable {
         return mgr.mSpeed;
     }
 
-    private final BroadcastReceiver mDataReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //make the received intent globally usable
-            if (mgr != null) {
-                mgr.mIntent = intent;
-            }
-            //update the UI
-            Log.i(TAG,"Received Intent, going to update Observers");
-            notifyAllObservers(intent.getAction());
-        }
-    };
-
-    public void registerReceiver(Context context){
-        context.registerReceiver(mDataReceiver,createIntentFilter());
+    public void registerReceiver(Context context) {
+        context.registerReceiver(mDataReceiver, createIntentFilter());
     }
 
-    public void unregisterReceiver(Context context){
+    public void unregisterReceiver(Context context) {
         context.unregisterReceiver(mDataReceiver);
     }
 

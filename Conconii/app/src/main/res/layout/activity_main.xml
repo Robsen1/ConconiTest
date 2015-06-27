@@ -15,9 +15,9 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="right"
+        android:baselineAligned="true"
         android:focusable="false"
-        android:orientation="vertical"
-        android:baselineAligned="true">
+        android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/mainActivity_layoutHeatRate_horizontal"
@@ -42,8 +42,8 @@
                 android:layout_gravity="center_vertical"
                 android:text="0"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textSize="60dp"
-                android:textColor="#ffdd3a2d" />
+                android:textColor="#ffdd3a2d"
+                android:textSize="60dp" />
 
             <TextView
                 android:id="@+id/mainActivity_text_bpm"
@@ -80,8 +80,8 @@
                 android:singleLine="true"
                 android:text="0"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textSize="60dp"
-                android:textColor="#ffdd3a2d" />
+                android:textColor="#ffdd3a2d"
+                android:textSize="60dp" />
 
             <TextView
                 android:id="@+id/mainActivity_text_speed"
@@ -129,9 +129,9 @@
                 android:layout_gravity="center_vertical"
                 android:text="0,00"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textSize="60dp"
                 android:textColor="#ffdd3a2d"
-                android:textIsSelectable="true" />
+                android:textIsSelectable="true"
+                android:textSize="60dp" />
 
             <TextView
                 android:id="@+id/mainActivity_text_km"
@@ -189,10 +189,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:background="#ff73a2ff"
                 android:clickable="false"
                 android:elegantTextHeight="false"
                 android:text="Scan for Devices"
-                android:background="#ff73a2ff"
                 android:textColor="#ff010101"
                 android:typeface="normal" />
 
@@ -226,92 +226,93 @@
         </LinearLayout>
 
     </LinearLayout>
+
     <LinearLayout
-        android:orientation="vertical"
+        android:id="@+id/startscreen_backLayout_vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#f573a2ff"
-        android:clickable="false"
+        android:layout_gravity="right|top"
         android:layout_marginBottom="100dp"
         android:layout_marginLeft="30dp"
-        android:layout_marginTop="30dp"
         android:layout_marginRight="30dp"
-        android:id="@+id/startscreen_backLayout_vertical"
-        android:measureWithLargestChild="true"
-        android:focusableInTouchMode="false"
-        android:layout_gravity="right|top"
-        android:padding="20dp"
+        android:layout_marginTop="30dp"
         android:alpha="20"
+        android:background="#f573a2ff"
         android:baselineAligned="false"
+        android:clickable="false"
+        android:focusableInTouchMode="false"
+        android:measureWithLargestChild="true"
+        android:orientation="vertical"
+        android:padding="20dp"
         android:visibility="visible">
 
         <LinearLayout
+            android:id="@+id/startscreen_startspeed_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/startscreen_startspeed_layout"
-            android:orientation="vertical"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
+                android:id="@+id/startscreen_text_startspeed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:singleLine="true"
                 android:text="Startspeed:"
-                android:id="@+id/startscreen_text_startspeed"
-                android:singleLine="true" />
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
+                android:layout_height="fill_parent"
+                android:orientation="horizontal">
 
                 <SeekBar
+                    android:id="@+id/startscreen_seekBar_startspeed"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/startscreen_seekBar_startspeed"
-                    android:indeterminateOnly="false"
-                    android:indeterminate="false"
                     android:layout_weight="30"
-                    android:focusable="true" />
+                    android:focusable="true"
+                    android:indeterminate="false"
+                    android:indeterminateOnly="false" />
 
                 <TextView
+                    android:id="@+id/startscreen_startspeed_kmh"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:layout_weight="100"
                     android:text="10"
-                    android:id="@+id/startscreen_startspeed_kmh"
-                    android:layout_weight="100" />
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
             </LinearLayout>
 
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="vertical"
+            android:id="@+id/startscreen_start_layout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:id="@+id/startscreen_start_layout"
             android:layout_gravity="center_horizontal"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <Button
+                android:id="@+id/startscreen_button_tutorial"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tutorial"
-                android:id="@+id/startscreen_button_tutorial"
-                android:focusable="true" />
+                android:focusable="true"
+                android:text="Tutorial" />
 
         </LinearLayout>
 
         <TextView
+            android:id="@+id/startscreen_text_countdown"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:id="@+id/startscreen_text_countdown"
-            android:text="START"
-            android:textSize="80dp"
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
-            android:clickable="true" />
+            android:clickable="true"
+            android:text="START"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="80dp" />
 
     </LinearLayout>
 

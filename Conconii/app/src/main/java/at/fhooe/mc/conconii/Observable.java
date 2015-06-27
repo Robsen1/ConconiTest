@@ -8,22 +8,23 @@ import java.util.ArrayList;
 public class Observable {
     private ArrayList<Observer> mObservers = new ArrayList<>();
 
-    public void attach(Observer observer){
-        if(!mObservers.contains(observer))
-        mObservers.add(observer);
+    public void attach(Observer observer) {
+        if (!mObservers.contains(observer))
+            mObservers.add(observer);
     }
 
-    public void detach(Observer observer){
+    public void detach(Observer observer) {
         mObservers.remove(observer);
     }
 
-    public void notifyAllObservers(){
-        for(int i=0;i<mObservers.size();i++){
+    public void notifyAllObservers() {
+        for (int i = 0; i < mObservers.size(); i++) {
             mObservers.get(i).update();
         }
     }
-    public void notifyAllObservers(String msg){
-        for(int i=0;i<mObservers.size();i++){
+
+    public void notifyAllObservers(String msg) {
+        for (int i = 0; i < mObservers.size(); i++) {
             mObservers.get(i).update(msg);
         }
     }

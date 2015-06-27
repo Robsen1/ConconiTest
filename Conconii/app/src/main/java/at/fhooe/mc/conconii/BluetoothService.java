@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.Iterator;
 import java.util.List;
@@ -29,24 +28,16 @@ import java.util.UUID;
 
 //testing MAC: 6C:EC:EB:00:E1:5F
 public class BluetoothService extends Service {
-    private static final String TAG = "BluetoothService";
-    private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); //descriptor
-    private static final UUID HEART_RATE_MEASUREMENT = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb"); //characteristics
-    private static final UUID HEART_RATE = UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb"); //service
-
     public static final String ACTION_HEART_RATE_UPDATE = "conconii.ble.heart.rate.update";
     public static final String ACTION_GATT_CONNECTED = "conconii.ble.gatt.connected";
     public static final String EXTRA_BLE_DATA = "conconii.ble.extra.data";
     public static final String ACTION_GATT_DISCONNECTED = "conconii.ble.gatt.disconnected";
     public static final String ACTION_INVALID_DEVICE = "conconii.ble.invalid.device";
-
-    private BluetoothManager mBluetoothManager=null;
-    private BluetoothAdapter mBluetoothAdapter = null;
-    private BluetoothGatt mBluetoothGatt = null;
-    private String mBluetoothDeviceAddress = null;
+    private static final String TAG = "BluetoothService";
+    private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); //descriptor
+    private static final UUID HEART_RATE_MEASUREMENT = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb"); //characteristics
+    private static final UUID HEART_RATE = UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb"); //service
     private final IBinder mBinder = new LocalBinder();
-
-
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -87,7 +78,7 @@ public class BluetoothService extends Service {
                 gatt.writeDescriptor(desc);
             } else {
                 Log.i(TAG, "BLE Heart-Rate-Profile NOT available");
-                Intent i= new Intent(ACTION_INVALID_DEVICE);
+                Intent i = new Intent(ACTION_INVALID_DEVICE);
                 sendBroadcast(i);
             }
         }
@@ -111,11 +102,16 @@ public class BluetoothService extends Service {
             }
         }
     };
+    private BluetoothManager mBluetoothManager = null;
+    private BluetoothAdapter mBluetoothAdapter = null;
+    private BluetoothGatt mBluetoothGatt = null;
+    private String mBluetoothDeviceAddress = null;
 
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
+
     public boolean initialize() {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
@@ -132,7 +128,7 @@ public class BluetoothService extends Service {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
-        Log.i(TAG,"BluetoothService initialized");
+        Log.i(TAG, "BluetoothService initialized");
         return true;
     }
 

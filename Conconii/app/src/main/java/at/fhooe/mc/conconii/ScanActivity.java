@@ -33,7 +33,6 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -43,16 +42,30 @@ import java.util.ArrayList;
  */
 public class ScanActivity extends ListActivity implements View.OnClickListener {
     private static final String TAG = "ScanActivity";
+    // Stops scanning after 10 seconds.
+    private static final long SCAN_PERIOD = 10000;
     private DeviceListAdapter mDeviceListAdapter = null;
     private BluetoothAdapter mBluetoothAdapter = null;
     private boolean mScanning;
     private Handler mHandler;
     private Button mRefresh = null;
-
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
     private BluetoothManager mBluetoothManager = null;
     private BluetoothDevice mDevice = null;
+    // Device scan callback.
+    private BluetoothAdapter.LeScanCallback mLeScanCallback =
+            new BluetoothAdapter.LeScanCallback() {
+
+                @Override
+                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mDeviceListAdapter.addDevice(device);
+                            mDeviceListAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,7 +109,6 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
         finish();
     }
 
-
     private void scanForDevices(final boolean enable) {
         if (enable) {
             rotateImage();
@@ -127,10 +139,11 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
     private void rotateImage() {
         final ImageView refresh = (ImageView) findViewById(R.id.scanActivity_image_refresh);
         CountDownTimer timer = new CountDownTimer(SCAN_PERIOD, 100) {
-            int i=1;
+            int i = 1;
+
             @Override
             public void onTick(long millisUntilFinished) {
-                refresh.setRotation(9*i++);
+                refresh.setRotation(9 * i++);
                 refresh.invalidate();
             }
 
@@ -141,6 +154,11 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
             }
         };
         timer.start();
+    }
+
+    static class ViewHolder {
+        TextView deviceName;
+        TextView deviceAddress;
     }
 
     // Adapter for holding devices found through scanning.
@@ -207,26 +225,5 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
             return view;
         }
-    }
-
-    // Device scan callback.
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-
-                @Override
-                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mDeviceListAdapter.addDevice(device);
-                            mDeviceListAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            };
-
-    static class ViewHolder {
-        TextView deviceName;
-        TextView deviceAddress;
     }
 }

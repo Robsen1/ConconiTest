@@ -17,11 +17,11 @@ import android.util.Log;
  */
 public class GpsService extends Service implements LocationListener {
 
-    private static final String TAG = "GpsService";
     public static final String ACTION_LOCATION_UPDATE = "blablba";
     public static final String EXTRA_GPS_DATA = "blub";
     public static final String ACTION_PROVIDER_ENABLED = "bububuiufbbs";
     public static final String ACTION_PROVIDER_DISABLED = "gashjfkld";
+    private static final String TAG = "GpsService";
     public static boolean gpsIsConnected = false;
     private LocationManager mLocationManager = null;
     private IBinder mBinder = new LocalBinder();
