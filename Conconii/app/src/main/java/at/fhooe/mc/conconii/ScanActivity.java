@@ -33,7 +33,6 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -42,17 +41,22 @@ import java.util.ArrayList;
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
 public class ScanActivity extends ListActivity implements View.OnClickListener {
+    //constants
     private static final String TAG = "ScanActivity";
+    private static final long SCAN_PERIOD = 10000;
+
+    //variables
     private DeviceListAdapter mDeviceListAdapter = null;
     private BluetoothAdapter mBluetoothAdapter = null;
-    private boolean mScanning;
-    private Handler mHandler;
     private Button mRefresh = null;
-
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
+    private Handler mHandler;
     private BluetoothManager mBluetoothManager = null;
     private BluetoothDevice mDevice = null;
+
+    //flags
+    private boolean mScanning;
+
+    //lifecycle related methods
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,6 +84,8 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
         mDeviceListAdapter.clear();
     }
 
+    //listener methods
+
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         mDevice = mDeviceListAdapter.getDevice(position);
@@ -96,31 +102,24 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
         finish();
     }
 
-
-    private void scanForDevices(final boolean enable) {
-        setText(enable);
-        if (enable) {
-            rotateImage();
-            // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mScanning = false;
-                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                }
-            }, SCAN_PERIOD);
-
-            mScanning = true;
-            mBluetoothAdapter.startLeScan(mLeScanCallback);
-        } else {
-            mScanning = false;
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+    @Override
+    public void onClick(View v) {
+        if (!mScanning) {
+            scanForDevices(true);
         }
     }
 
-    private void setText(boolean enable) {
+    //UI methods
+
+    /**
+     * Sets the visibility of the text.
+     * @param enable
+     * true -> visible /
+     * false -> gone
+     */
+    private void setTextVisibility(boolean enable) {
         TextView text = (TextView) findViewById(R.id.scanActivity_text_searching);
-        if(enable){
+        if (enable){
             text.setVisibility(View.VISIBLE);
         }
         else{
@@ -129,13 +128,9 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
     }
 
-    @Override
-    public void onClick(View v) {
-        if (!mScanning) {
-            scanForDevices(true);
-        }
-    }
-
+    /**
+     * Rotates the Image in a predefined time interval using {@link CountDownTimer}.
+     */
     private void rotateImage() {
         final ImageView refresh = (ImageView) findViewById(R.id.scanActivity_image_refresh);
         CountDownTimer timer = new CountDownTimer(SCAN_PERIOD, 100) {
@@ -155,7 +150,58 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
         timer.start();
     }
 
-    // Adapter for holding devices found through scanning.
+    //bluetooth methods
+
+    /**
+     * This method is used for starting and stopping the scan.
+     * It also calls the {@link #setTextVisibility(boolean)} method.
+     *
+     * @param enable If true, the scan is started and {@link #rotateImage()} is called.
+     *               If false, the scan is stopped.
+     */
+    private void scanForDevices(final boolean enable) {
+        setTextVisibility(enable);
+        if (enable) {
+            rotateImage();
+            // Stops scanning after a pre-defined scan period.
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mScanning = false;
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                    setTextVisibility(false);
+                }
+            }, SCAN_PERIOD);
+
+            mScanning = true;
+            mBluetoothAdapter.startLeScan(mLeScanCallback);
+        } else {
+            mScanning = false;
+            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        }
+    }
+
+    // Device scan callback
+    private BluetoothAdapter.LeScanCallback mLeScanCallback =
+            new BluetoothAdapter.LeScanCallback() {
+
+                @Override
+                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mDeviceListAdapter.addDevice(device);
+                            mDeviceListAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            };
+
+    //inner classes
+
+    /**
+     * Adapter for holding devices found through scanning.
+     */
     private class DeviceListAdapter extends BaseAdapter {
         private ArrayList<BluetoothDevice> mDevices;
         private LayoutInflater mInflator;
@@ -166,16 +212,28 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
             mInflator = ScanActivity.this.getLayoutInflater();
         }
 
+        /**
+         * Adds a device to ArrayList if the list doesn't contain it.
+         * @param device The device to add
+         */
         public void addDevice(BluetoothDevice device) {
             if (!mDevices.contains(device)) {
                 mDevices.add(device);
             }
         }
 
+        /**
+         * Getter for the device chosen by the user.
+         * @param position The clicked position.
+         * @return The device
+         */
         public BluetoothDevice getDevice(int position) {
             return mDevices.get(position);
         }
 
+        /**
+         * Clears the list
+         */
         public void clear() {
             mDevices.clear();
         }
@@ -221,22 +279,9 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
         }
     }
 
-    // Device scan callback.
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-
-                @Override
-                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mDeviceListAdapter.addDevice(device);
-                            mDeviceListAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            };
-
+    /**
+     * Class for holding the View.
+     */
     static class ViewHolder {
         TextView deviceName;
         TextView deviceAddress;

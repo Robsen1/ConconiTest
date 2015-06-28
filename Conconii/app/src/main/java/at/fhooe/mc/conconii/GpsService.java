@@ -16,25 +16,40 @@ import android.util.Log;
  * This service runs in his own thread and listens for Location updates
  */
 public class GpsService extends Service implements LocationListener {
-
+    //constants
     private static final String TAG = "GpsService";
     public static final String ACTION_LOCATION_UPDATE = "blablba";
     public static final String EXTRA_GPS_DATA = "blub";
     public static final String ACTION_PROVIDER_ENABLED = "bubububbs";
     public static final String ACTION_PROVIDER_DISABLED = "gashjfkld";
     public static final String ACTION_GPS_FIXED = "fixed bla";
-    public static boolean gpsIsConnected = false;
+
+    //variables
     private LocationManager mLocationManager = null;
     private IBinder mBinder = new LocalBinder();
-    private boolean mfirstUpdate=true;
+    private boolean mFirstUpdate =true;
 
+    //lifecycle methods
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        mLocationManager.removeUpdates(this);
+        return super.onUnbind(intent);
+    }
+
+    //listener methods
 
     @Override
     public void onLocationChanged(Location location) {
-        if(mfirstUpdate){
+        if(mFirstUpdate){
             Intent i = new Intent(ACTION_GPS_FIXED);
             sendBroadcast(i);
-            mfirstUpdate=false;
+            mFirstUpdate =false;
         }
         //build and send intent
         Intent update = new Intent(ACTION_LOCATION_UPDATE);
@@ -43,13 +58,6 @@ public class GpsService extends Service implements LocationListener {
         update.putExtras(bundle);
         sendBroadcast(update);
         Log.i(TAG, "Location update sent : " + location);
-    }
-
-    //TODO: check whether gps is enabled or not
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
     }
 
     @Override
@@ -72,6 +80,14 @@ public class GpsService extends Service implements LocationListener {
         }
     }
 
+    //controller methods
+
+    /**
+     * Is called to check whether the GPS-provider is enabled or not. Is called
+     * by the {@link android.content.ServiceConnection} callback.
+     * Additionally sends a broadcast for each result.
+     * @return True if enabled, false otherwise
+     */
     public boolean isEnabled() {
         //start requesting location updates
         if (mLocationManager == null)
@@ -86,6 +102,10 @@ public class GpsService extends Service implements LocationListener {
         }
     }
 
+    /**
+     * Used to request location updates in a hardcoded interval of 5 meters.
+     * Is called by the {@link android.content.ServiceConnection} callback.
+     */
     public void requestUpdates() {
         if (mLocationManager == null)
             mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -94,12 +114,12 @@ public class GpsService extends Service implements LocationListener {
                 5, this);//get update about each 5 meters}
     }
 
-    @Override
-    public boolean onUnbind(Intent intent) {
-        mLocationManager.removeUpdates(this);
-        return super.onUnbind(intent);
-    }
 
+
+    //inner classes
+    /**
+     * This class is for returning an instance of the service
+     */
     public class LocalBinder extends Binder {
         GpsService getService() {
             return GpsService.this;

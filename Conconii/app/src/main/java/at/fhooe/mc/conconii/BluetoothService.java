@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.Iterator;
 import java.util.List;
@@ -22,31 +21,32 @@ import java.util.UUID;
 
 /**
  * Created by Robsen & Gix
- * This is the service for creating a ble connection and for receiving datafrom the GATT serve.
- * This service works as a GATT client. Received data is sent to the DataManger singleton.
- * This service runs in his own thread.
+ * This is the service for creating a ble connection and for receiving data from the GATT serve.
+ * This service works as a GATT client. Received data is sent to the {@link DataManager} singleton.
+ * This service is bound to the {@link MainActivity}
  */
 
 //testing MAC: 6C:EC:EB:00:E1:5F
 public class BluetoothService extends Service {
+    //constants
     private static final String TAG = "BluetoothService";
     private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"); //descriptor
     private static final UUID HEART_RATE_MEASUREMENT = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb"); //characteristics
     private static final UUID HEART_RATE = UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb"); //service
-
     public static final String ACTION_HEART_RATE_UPDATE = "conconii.ble.heart.rate.update";
     public static final String ACTION_GATT_CONNECTED = "conconii.ble.gatt.connected";
     public static final String EXTRA_BLE_DATA = "conconii.ble.extra.data";
     public static final String ACTION_GATT_DISCONNECTED = "conconii.ble.gatt.disconnected";
     public static final String ACTION_INVALID_DEVICE = "conconii.ble.invalid.device";
 
-    private BluetoothManager mBluetoothManager=null;
+    //variables
+    private BluetoothManager mBluetoothManager = null;
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothGatt mBluetoothGatt = null;
     private String mBluetoothDeviceAddress = null;
     private final IBinder mBinder = new LocalBinder();
 
-
+    //GATT callback
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -87,7 +87,7 @@ public class BluetoothService extends Service {
                 gatt.writeDescriptor(desc);
             } else {
                 Log.i(TAG, "BLE Heart-Rate-Profile NOT available");
-                Intent i= new Intent(ACTION_INVALID_DEVICE);
+                Intent i = new Intent(ACTION_INVALID_DEVICE);
                 sendBroadcast(i);
             }
         }
@@ -116,9 +116,12 @@ public class BluetoothService extends Service {
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
+
+    /**
+     * Initializes the {@link BluetoothAdapter} and the {@link BluetoothManager}.
+     * @return True if success, false otherwise
+     */
     public boolean initialize() {
-        // For API level 18 and above, get a reference to BluetoothAdapter through
-        // BluetoothManager.
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (mBluetoothManager == null) {
@@ -132,7 +135,7 @@ public class BluetoothService extends Service {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
-        Log.i(TAG,"BluetoothService initialized");
+        Log.i(TAG, "BluetoothService initialized");
         return true;
     }
 
@@ -141,9 +144,7 @@ public class BluetoothService extends Service {
      *
      * @param address The device address of the destination device.
      * @return Return true if the connection is initiated successfully. The connection result
-     * is reported asynchronously through the
-     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     * callback.
+     * is reported asynchronously through the {@link BluetoothGattCallback}
      */
     public boolean connect(final String address) {
 
@@ -177,7 +178,6 @@ public class BluetoothService extends Service {
         return true;
     }
 
-
     @Override
     public boolean onUnbind(Intent intent) {
 
@@ -189,6 +189,10 @@ public class BluetoothService extends Service {
         return super.onUnbind(intent);
     }
 
+    //inner classes
+    /**
+     * This class is for returning an instance of the service
+     */
     public class LocalBinder extends Binder {
         BluetoothService getService() {
             return BluetoothService.this;

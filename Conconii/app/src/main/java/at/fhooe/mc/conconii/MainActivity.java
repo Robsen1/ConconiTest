@@ -27,33 +27,34 @@ import java.text.NumberFormat;
 
 
 /**
- * The MainActivity displays the actual distance,speed and heart rate.
+ * The MainActivity displays two major layouts: the startScreen and the mainActivity layout.
  */
 public class MainActivity extends Activity implements Observer {
+
     //constants
     private static final String TAG = "MainActivity";
-    private static final int STORE_PERIOD = 50;
-    private static final int REQUEST_ENABLE_BT = 1;
-    private static final int REQUEST_GET_DEVICE = 2;
     public static final String EXTRAS_DEVICE_NAME = "conconii.ble.device.name";
     public static final String EXTRAS_DEVICE_ADDRESS = "conconii.ble.device.address";
+    private static final int STORE_PERIOD = 50; //in meters
+    private static final int REQUEST_ENABLE_BT = 1;
+    private static final int REQUEST_GET_DEVICE = 2;
 
     //options
-    protected static int mStartspeed = 6;
+    protected static int mStartspeed = 6; //modified by seekbar
 
     //flags
     private boolean mTestIsRunning = false;
     private boolean mImageSet = true;
-    private boolean mIsDeviceConnected = false;
+    private boolean mIsDeviceConnected = false; //reserved for future uses
     private boolean mBleServiceIsBound = false;
-    private boolean mIsGpsEnabled = false;
+    private boolean mIsGpsEnabled = false;  //reserved for future uses
     private boolean mGpsServiceIsBound = false;
 
     //service connections
     private String mDeviceAddress = null;
-    private String mDeviceName = null;
+    private String mDeviceName = null; //reserved for future uses
     private BluetoothService mBluetoothService = null;
-    private ServiceConnection mBluetoothServiceConnection = new ServiceConnection() {
+    private final ServiceConnection mBluetoothServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.i(TAG, "BluetoothService connected");
@@ -68,7 +69,7 @@ public class MainActivity extends Activity implements Observer {
         }
     };
     private GpsService mGpsService = null;
-    private ServiceConnection mGpsServiceConnection = new ServiceConnection() {
+    private final ServiceConnection mGpsServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.i(TAG, "GpsService connected");
@@ -88,10 +89,10 @@ public class MainActivity extends Activity implements Observer {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        //initialize singleton
         DataManager.getInstance().registerReceiver(getApplicationContext());
-        DataManager.getInstance().attach(this);
-
+        DataManager.getInstance().attach(this); //observer
+        //build UI
         createStartscreenUI();
 
         bindGpsService(true);
@@ -130,18 +131,27 @@ public class MainActivity extends Activity implements Observer {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //cleanup
-        bindGpsService(false);
-        bindBleService(false);
-        DataManager.getInstance().unregisterReceiver(getApplicationContext());
-        DataManager.getInstance().detach(this);
-        DataManager.getInstance().finalize();
+        if (!mTestIsRunning) {
+            //cleanup
+            bindGpsService(false);
+            bindBleService(false);
+            DataManager.getInstance().detach(this);
+            DataManager.getInstance().clear(getApplicationContext());
+        }
     }
 
     //bluetooth related methods
+
+    /**
+     * Once this method is called, Bluetooth is going to be activated by the user.
+     * If BT is already enabled, the ScanActivity gets started.
+     * If BT is not enabled the ScanActivity gets started through the {@link #onActivityResult(int, int, Intent)} Callback.
+     *
+     * @return False is returned if errors occurred.
+     */
     private boolean enableBluetoothAndStartScan() {
-        BluetoothManager bluetoothManager=null;
-        BluetoothAdapter bluetoothAdapter=null;
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter bluetoothAdapter=bluetoothManager.getAdapter();
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT).show();
         }
@@ -153,7 +163,6 @@ public class MainActivity extends Activity implements Observer {
                 return false;
             }
         }
-        bluetoothAdapter = bluetoothManager.getAdapter();
         if (bluetoothAdapter == null) {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
@@ -166,24 +175,47 @@ public class MainActivity extends Activity implements Observer {
         return true;
     }
 
+    /**
+     * This method is used universally to bind or unbind from the BluetoothService.
+     * Further workflow is specified trough the {@link #mBluetoothServiceConnection}.
+     *
+     * @param bind If True, {@link #bindService(Intent, ServiceConnection, int)} is called,
+     *             {@link #unbindService(ServiceConnection)} is called otherwise.
+     */
     private void bindBleService(boolean bind) {
         if (bind) {
-            bindService(new Intent(this, BluetoothService.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
+            if (!mBleServiceIsBound)
+                bindService(new Intent(this, BluetoothService.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
             mBleServiceIsBound = true;
         } else if (mBleServiceIsBound) {
             unbindService(mBluetoothServiceConnection);
+            mBleServiceIsBound = false;
         }
     }
 
+    /**
+     * This method is just for shortening the call of the ScanActivity.
+     * {@link #startActivityForResult(Intent, int)} is invoked.
+     */
     private void startScanActivity() {
         startActivityForResult(new Intent(MainActivity.this, ScanActivity.class), REQUEST_GET_DEVICE);
     }
 
     //gps related methods
+
+    /**
+     * This method is used universally to bind or unbind from the GpsService.
+     * Further workflow is specified trough the {@link #mGpsServiceConnection}.
+     *
+     * @param bind If True, {@link #bindService(Intent, ServiceConnection, int)} is called,
+     *             {@link #unbindService(ServiceConnection)} is called otherwise.
+     */
     private void bindGpsService(boolean bind) {
         if (bind) {
-            bindService(new Intent(this, GpsService.class), mGpsServiceConnection, BIND_AUTO_CREATE);
-            mGpsServiceIsBound = true;
+            if (!mGpsServiceIsBound) {
+                bindService(new Intent(this, GpsService.class), mGpsServiceConnection, BIND_AUTO_CREATE);
+                mGpsServiceIsBound = true;
+            }
         } else if (mGpsServiceIsBound) {
             unbindService(mGpsServiceConnection);
             mGpsServiceIsBound = false;
@@ -191,18 +223,25 @@ public class MainActivity extends Activity implements Observer {
     }
 
     //UI related methods
+
+    /**
+     * This method should only be called once for initializing the behavior of the UserInterface.
+     * It only specifies the behaviour of Elements in the startScreen Layout.
+     *
+     */
     private void createStartscreenUI() {
         final Button finish = (Button) findViewById(R.id.mainActivity_button_quit);
         finish.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LinearLayout layout = (LinearLayout) findViewById(R.id.startscreen_backLayout_vertical);
-                if (!layout.isShown()) {
+                if (!layout.isShown()) { //test is running
                     mTestIsRunning = false;
                     layout.setVisibility(View.VISIBLE);
                     finish.setText("SCAN FOR DEVICES");
                     TextView countdown = (TextView) findViewById(R.id.startscreen_text_countdown);
                     countdown.setText("START");
+                    DataManager.getInstance().reset(getApplicationContext());
                     startActivity(new Intent(MainActivity.this, EvaluationActivity.class));
 
                 } else {
@@ -233,9 +272,12 @@ public class MainActivity extends Activity implements Observer {
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                TextView test = (TextView) findViewById(R.id.startscreen_text_startspeed_value);
-                test.setText(String.valueOf(progress + 6));
+                TextView speed = (TextView) findViewById(R.id.startscreen_text_startspeed_value);
+                speed.setText(String.valueOf(progress + 6));
                 mStartspeed = progress + 6;
+                TextView startspeed= (TextView) findViewById(R.id.mainActivity_text_speedNeeded);
+                NumberFormat speedFormat = new DecimalFormat("0.0");
+                startspeed.setText("/"+speedFormat.format(mStartspeed));
             }
 
             @Override
@@ -248,6 +290,12 @@ public class MainActivity extends Activity implements Observer {
         });
     }
 
+    /**
+     * At Call, the countdown starts with a predefined interval of 900ms.
+     * The Starting Value is hardcoded with 3000ms.
+     * The method is also capable for changing the TextView.
+     * @see CountDownTimer
+     */
     private void startCountdown() {
         final TextView countdown = (TextView) findViewById(R.id.startscreen_text_countdown);
         int seconds = 3;
@@ -274,7 +322,11 @@ public class MainActivity extends Activity implements Observer {
         timer.start();
     }
 
-    public void changeHeartVisualisation() {
+    /**
+     * On Call, the fancy Heart image changes.
+     * (The heart beats at each call :D)
+     */
+    private void changeHeartVisualisation() {
         ImageView v = (ImageView) findViewById(R.id.mainActivity_image_HeartRate);
         if (mImageSet) {
             v.setImageResource(R.drawable.ic_favorite_border_black_48dp);
@@ -286,11 +338,13 @@ public class MainActivity extends Activity implements Observer {
     }
 
     /**
-     * Called to update the user interface.
-     * Updated values are the distance,speed and heart rate.
-     * The update interval depends on the caller, each call is an update with the actual data.
+     * This method is called by {@link #update(String)}.
+     * Depending on the param, different components of the mainActivity layout are updated with values
+     * out of the {@link DataManager} singleton class.
+     *
+     * @param msg The {@link Intent} action codes.
      */
-    public void updateUI(String msg) {
+    private void updateUI(String msg) {
         DataManager mgr = DataManager.getInstance();
         if (mgr == null) return;
 
@@ -298,13 +352,13 @@ public class MainActivity extends Activity implements Observer {
         if (msg.equals(GpsService.ACTION_LOCATION_UPDATE)) {
             TextView distance = (TextView) findViewById(R.id.mainActivity_text_distance);
             TextView actualSpeed = (TextView) findViewById(R.id.mainActivity_text_speedActual);
-            TextView neededSpeed = (TextView) findViewById(R.id.mainActivity_text_speedActual);
-            NumberFormat distanceFormat = new DecimalFormat("0.00");
+            TextView neededSpeed = (TextView) findViewById(R.id.mainActivity_text_speedNeeded);
+            NumberFormat distanceFormat = new DecimalFormat("0");
             NumberFormat speedFormat = new DecimalFormat("0.0");
-            float neSpe=mStartspeed + mgr.getActualDistance() / 200 * 0.5f;
+            float neSpe = mStartspeed + mgr.getActualDistance() / 200 * 0.5f;
 
-            neededSpeed.setText(speedFormat.format(neSpe));
-            distance.setText(distanceFormat.format(mgr.getActualDistance()/1000));
+            neededSpeed.setText("/"+speedFormat.format(neSpe));
+            distance.setText(distanceFormat.format(mgr.getActualDistance()));
             actualSpeed.setText(speedFormat.format(mgr.getActualSpeed()));
 
             //add a measurement point to the ArrayList
@@ -346,20 +400,15 @@ public class MainActivity extends Activity implements Observer {
     //Observer Pattern related methods
     @Override
     public void update() {
-        //get new values
+        //for future use
     }
 
     @Override
     public void update(String msg) {
         if (msg.equals(BluetoothService.ACTION_INVALID_DEVICE)) {
-            Toast.makeText(this, "Please use a device which is able to display the Heart Rate...", Toast.LENGTH_LONG);
+            Toast.makeText(this, "Please use a device which is able to display the Heart Rate...", Toast.LENGTH_LONG).show();
             return;
         }
         updateUI(msg);
-
-
     }
-
-
-
 }

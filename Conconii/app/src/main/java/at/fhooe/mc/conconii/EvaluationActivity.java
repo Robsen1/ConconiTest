@@ -1,55 +1,38 @@
 package at.fhooe.mc.conconii;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.*;
-import java.text.*;
-
-import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.Legend.LegendForm;
-import com.github.mikephil.charting.components.LimitLine;
-import com.github.mikephil.charting.components.LimitLine.LimitLabelPosition;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.DataSet;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-
 import com.github.mikephil.charting.utils.ValueFormatter;
 
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
-
+/**
+ * This Activity displays a human readable representation of data collected during the test.
+ */
 public class EvaluationActivity extends Activity {
-
     private LineChart mChart;
-    private SeekBar mSeekBarX, mSeekBarY;
-    private TextView tvX, tvY;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_evaluation);
-
         //get chart
         mChart = (LineChart) findViewById(R.id.evaluationScreen_linechart);
 
         //calculate the points to display
-
         EvaluationCalculator calc = new EvaluationCalculator(DataManager.getInstance().getDataList());
         ArrayList<ActualData> finalData = calc.getFinalData();
-
 //        finalData.add(new ActualData(80, 5, 0));
 //        finalData.add(new ActualData(80, 5, 200));
 //        finalData.add(new ActualData(88, 5, 400));
@@ -65,11 +48,9 @@ public class EvaluationActivity extends Activity {
 //        finalData.add(new ActualData(190, 5, 2400));
 //        finalData.add(new ActualData(190, 5, 2600));
 
-
         // actual date and time
         Date dNow = new Date();
-        SimpleDateFormat ft =
-                new SimpleDateFormat("E dd.MM.yyyy 'at' HH:mm:ss");
+        SimpleDateFormat ft = new SimpleDateFormat("E dd.MM.yyyy 'at' HH:mm:ss");
 
         // create the chart
         ArrayList<Entry> chartData = new ArrayList<>();
@@ -97,7 +78,6 @@ public class EvaluationActivity extends Activity {
         //Chart
         mChart.setDescription("");
 
-
         //X Axis
         XAxis xAx = mChart.getXAxis();
         xAx.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -105,7 +85,6 @@ public class EvaluationActivity extends Activity {
         //set text km/h
         TextView textXAxis = (TextView) findViewById(R.id.evaluation_xAxis_text);
 //        textXAxis.layout(xAxisXPos, 0,xAxisYPos, 0);
-
 
         //Y Axis
         mChart.getAxisRight().setEnabled(false);
@@ -116,21 +95,17 @@ public class EvaluationActivity extends Activity {
         //set text bpm
         TextView textYAxis = (TextView) findViewById(R.id.evaluation_yAxis_text);
 //        textYAxis.layout(yAxisXPos, 0, yAxisYPos, 0);
-
-
-
-
-
     }
 
-    // formatter
+    /**
+     * A Formatter class for individual formatting purposes.
+     */
     private class MyValueFormatter implements ValueFormatter {
         private DecimalFormat mFormat;
 
         public MyValueFormatter() {
             mFormat = new DecimalFormat("###"); // use one decimal
         }
-
         @Override
         public String getFormattedValue(float value) {
             return mFormat.format(value); // append a dollar-sign

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 /**
  * Created by Robsen & Gix
+ * Class for Observer Pattern
  */
 public class Observable {
     private ArrayList<Observer> mObservers = new ArrayList<>();
@@ -17,6 +18,7 @@ public class Observable {
         mObservers.remove(observer);
     }
 
+    // reserved for future uses
     public void notifyAllObservers(){
         for(int i=0;i<mObservers.size();i++){
             mObservers.get(i).update();

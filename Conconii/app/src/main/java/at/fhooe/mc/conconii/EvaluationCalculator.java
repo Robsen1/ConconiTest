@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 /**
  * Created by Robsn & Gix
+ * This class is used to create a list of final data which can be used to display
+ * in {@link EvaluationActivity}.
  */
 public class EvaluationCalculator {
     private ArrayList<ActualData> mData;
@@ -17,7 +19,8 @@ public class EvaluationCalculator {
     }
 
     /**
-     * saves a average value of every speed step
+     * Calculates the final Data used to Display in the {@link EvaluationActivity}.
+     * Stores an average value of every speed step.
      */
     private void calcFinalData() {
         float s = mData.get(0).getTargetSpeed();
@@ -47,7 +50,10 @@ public class EvaluationCalculator {
     }
 
 
-    //getter
+    /**
+     * Getter for the list of final data.
+     * @return The final data list
+     */
     public ArrayList<ActualData> getFinalData() {
         return mFinalData;
     }
