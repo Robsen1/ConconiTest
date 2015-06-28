@@ -98,6 +98,7 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
 
     private void scanForDevices(final boolean enable) {
+        setText(enable);
         if (enable) {
             rotateImage();
             // Stops scanning after a pre-defined scan period.
@@ -115,6 +116,17 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
         }
+    }
+
+    private void setText(boolean enable) {
+        TextView text = (TextView) findViewById(R.id.scanActivity_text_searching);
+        if(enable){
+            text.setVisibility(View.VISIBLE);
+        }
+        else{
+            text.setVisibility(View.GONE);
+        }
+
     }
 
     @Override

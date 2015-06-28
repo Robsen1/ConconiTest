@@ -71,9 +71,9 @@ public class BluetoothService extends Service {
             BluetoothGattCharacteristic chara = null;
             Iterator<BluetoothGattService> iterator = services.iterator();
             do {
-                BluetoothGattService serv = iterator.next();
-                if (serv.getUuid().equals(HEART_RATE)) {
-                    chara = serv.getCharacteristic(HEART_RATE_MEASUREMENT);
+                BluetoothGattService service = iterator.next();
+                if (service.getUuid().equals(HEART_RATE)) {
+                    chara = service.getCharacteristic(HEART_RATE_MEASUREMENT);
                 }
 
             } while (iterator.hasNext() && chara == null);

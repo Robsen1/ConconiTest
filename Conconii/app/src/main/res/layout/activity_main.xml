@@ -17,7 +17,8 @@
         android:layout_gravity="right"
         android:focusable="false"
         android:orientation="vertical"
-        android:baselineAligned="true">
+        android:baselineAligned="true"
+        android:background="#00ff0a60">
 
         <LinearLayout
             android:id="@+id/mainActivity_layoutHeatRate_horizontal"
@@ -25,7 +26,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:keepScreenOn="true">
 
             <ImageView
                 android:id="@+id/mainActivity_image_HeartRate"
@@ -78,18 +80,18 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:singleLine="true"
-                android:text="0"
+                android:text="0,0"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textSize="60dp"
                 android:textColor="#ffdd3a2d" />
 
             <TextView
-                android:id="@+id/mainActivity_text_speed"
+                android:id="@+id/mainActivity_text_speedNeeded"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:singleLine="true"
-                android:text="/8"
+                android:text="/6,0"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textSize="60dp" />
 
@@ -258,7 +260,8 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="Startspeed:"
                 android:id="@+id/startscreen_text_startspeed"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:layout_marginBottom="10dp" />
 
             <LinearLayout
                 android:orientation="horizontal"
@@ -272,14 +275,15 @@
                     android:indeterminateOnly="false"
                     android:indeterminate="false"
                     android:layout_weight="30"
-                    android:focusable="true" />
+                    android:focusable="true"
+                    android:max="4" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="10"
-                    android:id="@+id/startscreen_startspeed_kmh"
+                    android:text="6"
+                    android:id="@+id/startscreen_text_startspeed_value"
                     android:layout_weight="100" />
             </LinearLayout>
 

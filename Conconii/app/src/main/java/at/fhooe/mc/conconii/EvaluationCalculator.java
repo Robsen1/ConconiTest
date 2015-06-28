@@ -6,11 +6,14 @@ import java.util.ArrayList;
  * Created by Robsn & Gix
  */
 public class EvaluationCalculator {
-    private ArrayList<ActualData> mData = new ArrayList<>();
-    private ArrayList<ActualData> mFinalData = new ArrayList<>();
+    private ArrayList<ActualData> mData;
+    private ArrayList<ActualData> mFinalData;
 
-    EvaluationCalculator(ArrayList<ActualData> _data) {
-        mData = _data;
+    EvaluationCalculator(ArrayList<ActualData> data) {
+        mFinalData  = new ArrayList<>();
+        mData = data;
+        if(mData.size()!=0)
+        calcFinalData();
     }
 
     /**

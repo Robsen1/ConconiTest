@@ -3,6 +3,7 @@ package at.fhooe.mc.conconii;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -45,22 +46,24 @@ public class EvaluationActivity extends Activity {
         mChart = (LineChart) findViewById(R.id.evaluationScreen_linechart);
 
         //calculate the points to display
+
         EvaluationCalculator calc = new EvaluationCalculator(DataManager.getInstance().getDataList());
         ArrayList<ActualData> finalData = calc.getFinalData();
-        finalData.add(new ActualData(80, 5, 0));
-        finalData.add(new ActualData(80, 5, 200));
-        finalData.add(new ActualData(88, 5, 400));
-        finalData.add(new ActualData(90, 5, 600));
-        finalData.add(new ActualData(120, 5, 800));
-        finalData.add(new ActualData(130, 5, 1000));
-        finalData.add(new ActualData(140, 5, 1200));
-        finalData.add(new ActualData(150, 5, 1400));
-        finalData.add(new ActualData(150, 5, 1600));
-        finalData.add(new ActualData(160, 5, 1800));
-        finalData.add(new ActualData(170, 5, 2000));
-        finalData.add(new ActualData(190, 5, 2200));
-        finalData.add(new ActualData(190, 5, 2400));
-        finalData.add(new ActualData(190, 5, 2600));
+
+//        finalData.add(new ActualData(80, 5, 0));
+//        finalData.add(new ActualData(80, 5, 200));
+//        finalData.add(new ActualData(88, 5, 400));
+//        finalData.add(new ActualData(90, 5, 600));
+//        finalData.add(new ActualData(120, 5, 800));
+//        finalData.add(new ActualData(130, 5, 1000));
+//        finalData.add(new ActualData(140, 5, 1200));
+//        finalData.add(new ActualData(150, 5, 1400));
+//        finalData.add(new ActualData(150, 5, 1600));
+//        finalData.add(new ActualData(160, 5, 1800));
+//        finalData.add(new ActualData(170, 5, 2000));
+//        finalData.add(new ActualData(190, 5, 2200));
+//        finalData.add(new ActualData(190, 5, 2400));
+//        finalData.add(new ActualData(190, 5, 2600));
 
 
         // actual date and time

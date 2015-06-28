@@ -18,32 +18,41 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 
 /**
  * The MainActivity displays the actual distance,speed and heart rate.
  */
 public class MainActivity extends Activity implements Observer {
+    //constants
     private static final String TAG = "MainActivity";
-    private static final int STORE_PERIOD = 50; //interval for storing the data in meters
-    protected int mStartspeed = 6;
-    public static String EXTRAS_DEVICE_NAME = "conconii.ble.device.name";
-    public static String EXTRAS_DEVICE_ADDRESS = "conconii.ble.device.address";
-    public static boolean mTestFinished = false;
-    private float mDistance = 0; //the actual distance since the start in meters
-    private boolean mImageSet = true;
+    private static final int STORE_PERIOD = 50;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_GET_DEVICE = 2;
-    private BluetoothManager mBluetoothManager = null;
-    private BluetoothAdapter mBluetoothAdapter = null;
+    public static final String EXTRAS_DEVICE_NAME = "conconii.ble.device.name";
+    public static final String EXTRAS_DEVICE_ADDRESS = "conconii.ble.device.address";
+
+    //options
+    protected static int mStartspeed = 6;
+
+    //flags
+    private boolean mTestIsRunning = false;
+    private boolean mImageSet = true;
+    private boolean mIsDeviceConnected = false;
+    private boolean mBleServiceIsBound = false;
+    private boolean mIsGpsEnabled = false;
+    private boolean mGpsServiceIsBound = false;
+
+    //service connections
     private String mDeviceAddress = null;
     private String mDeviceName = null;
-    private boolean mIsDeviceConnected = false;
-
     private BluetoothService mBluetoothService = null;
-    private boolean mIsBleServiceBound=false;
     private ServiceConnection mBluetoothServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -59,8 +68,6 @@ public class MainActivity extends Activity implements Observer {
         }
     };
     private GpsService mGpsService = null;
-    private boolean mIsGpsEnabled = false;
-    private boolean mIsGpsServiceBound=false;
     private ServiceConnection mGpsServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -76,34 +83,134 @@ public class MainActivity extends Activity implements Observer {
         }
     };
 
-
+    //lifecycle related methods
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.i(TAG, "onCreate()");
 
         DataManager.getInstance().registerReceiver(getApplicationContext());
         DataManager.getInstance().attach(this);
 
-        final Button restart = (Button) findViewById(R.id.mainActivity_button_quit);
-        restart.setOnClickListener(new View.OnClickListener() {
+        createStartscreenUI();
+
+        bindGpsService(true);
+        enableBluetoothAndStartScan();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!mTestIsRunning) {
+            LinearLayout layout = (LinearLayout) findViewById(R.id.startscreen_backLayout_vertical);
+            Button quit = (Button) findViewById(R.id.mainActivity_button_quit);
+            layout.setVisibility(View.VISIBLE);
+            quit.setText("SCAN FOR DEVICES");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // User chose not to enable Bluetooth.
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
+            finish();
+            return;
+        } else if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
+            startScanActivity();
+        }
+        if (requestCode == REQUEST_GET_DEVICE && resultCode == Activity.RESULT_OK) {
+            mDeviceAddress = data.getStringExtra(EXTRAS_DEVICE_ADDRESS);
+            mDeviceName = data.getStringExtra(EXTRAS_DEVICE_NAME);
+            bindBleService(true);
+
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //cleanup
+        bindGpsService(false);
+        bindBleService(false);
+        DataManager.getInstance().unregisterReceiver(getApplicationContext());
+        DataManager.getInstance().detach(this);
+        DataManager.getInstance().finalize();
+    }
+
+    //bluetooth related methods
+    private boolean enableBluetoothAndStartScan() {
+        BluetoothManager bluetoothManager=null;
+        BluetoothAdapter bluetoothAdapter=null;
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT).show();
+        }
+
+        if (bluetoothManager == null) {
+            bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            if (bluetoothManager == null) {
+                Log.e(TAG, "Unable to initialize BluetoothManager.");
+                return false;
+            }
+        }
+        bluetoothAdapter = bluetoothManager.getAdapter();
+        if (bluetoothAdapter == null) {
+            Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
+            return false;
+        }
+
+        if (!bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        } else startScanActivity();
+        return true;
+    }
+
+    private void bindBleService(boolean bind) {
+        if (bind) {
+            bindService(new Intent(this, BluetoothService.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
+            mBleServiceIsBound = true;
+        } else if (mBleServiceIsBound) {
+            unbindService(mBluetoothServiceConnection);
+        }
+    }
+
+    private void startScanActivity() {
+        startActivityForResult(new Intent(MainActivity.this, ScanActivity.class), REQUEST_GET_DEVICE);
+    }
+
+    //gps related methods
+    private void bindGpsService(boolean bind) {
+        if (bind) {
+            bindService(new Intent(this, GpsService.class), mGpsServiceConnection, BIND_AUTO_CREATE);
+            mGpsServiceIsBound = true;
+        } else if (mGpsServiceIsBound) {
+            unbindService(mGpsServiceConnection);
+            mGpsServiceIsBound = false;
+        }
+    }
+
+    //UI related methods
+    private void createStartscreenUI() {
+        final Button finish = (Button) findViewById(R.id.mainActivity_button_quit);
+        finish.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LinearLayout layout = (LinearLayout) findViewById(R.id.startscreen_backLayout_vertical);
                 if (!layout.isShown()) {
+                    mTestIsRunning = false;
                     layout.setVisibility(View.VISIBLE);
-                    mDistance = 0;
-                    restart.setText("SCAN FOR DEVICES");
+                    finish.setText("SCAN FOR DEVICES");
                     TextView countdown = (TextView) findViewById(R.id.startscreen_text_countdown);
                     countdown.setText("START");
+                    startActivity(new Intent(MainActivity.this, EvaluationActivity.class));
 
                 } else {
-                    if (mIsBleServiceBound) {
+                    if (mBleServiceIsBound) {
                         unbindService(mBluetoothServiceConnection);
-                        mIsBleServiceBound = false;
+                        mBleServiceIsBound = false;
                     }
-                    startScan();
+                    startScanActivity();
                 }
             }
         });
@@ -122,24 +229,28 @@ public class MainActivity extends Activity implements Observer {
             }
         });
 
-        bindService(new Intent(this, GpsService.class), mGpsServiceConnection, BIND_AUTO_CREATE);
-        mIsGpsServiceBound=true;
-        enableBluetoothAndStartScan();
-    }
+        SeekBar bar = (SeekBar) findViewById(R.id.startscreen_seekBar_startspeed);
+        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                TextView test = (TextView) findViewById(R.id.startscreen_text_startspeed_value);
+                test.setText(String.valueOf(progress + 6));
+                mStartspeed = progress + 6;
+            }
 
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LinearLayout layout = (LinearLayout) findViewById(R.id.startscreen_backLayout_vertical);
-        Button quit = (Button) findViewById(R.id.mainActivity_button_quit);
-        layout.setVisibility(View.VISIBLE);
-        quit.setText("SCAN FOR DEVICES");
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
     }
 
     private void startCountdown() {
         final TextView countdown = (TextView) findViewById(R.id.startscreen_text_countdown);
-        int seconds = 10;
+        int seconds = 3;
         seconds++;
         CountDownTimer timer = new CountDownTimer(seconds * 1000, 900) {
             @Override
@@ -155,34 +266,23 @@ public class MainActivity extends Activity implements Observer {
             public void onFinish() {
                 LinearLayout layout = (LinearLayout) findViewById(R.id.startscreen_backLayout_vertical);
                 layout.setVisibility(View.GONE);
-                Button quit= (Button) findViewById(R.id.mainActivity_button_quit);
-                quit.setText("RESTART");
+                Button quit = (Button) findViewById(R.id.mainActivity_button_quit);
+                quit.setText("FINISH");
+                mTestIsRunning = true;
             }
         };
         timer.start();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // User chose not to enable Bluetooth.
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
-            finish();
-            return;
-        } else if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
-            startScan();
+    public void changeHeartVisualisation() {
+        ImageView v = (ImageView) findViewById(R.id.mainActivity_image_HeartRate);
+        if (mImageSet) {
+            v.setImageResource(R.drawable.ic_favorite_border_black_48dp);
+            mImageSet = false;
+        } else {
+            v.setImageResource(R.drawable.ic_favorite_48pt_3x);
+            mImageSet = true;
         }
-        if (requestCode == REQUEST_GET_DEVICE && resultCode == Activity.RESULT_OK) {
-            mDeviceAddress = data.getStringExtra(EXTRAS_DEVICE_ADDRESS);
-            mDeviceName = data.getStringExtra(EXTRAS_DEVICE_NAME);
-            Log.i(TAG, "Attempting to bind BluetoothService");
-            bindService(new Intent(this, BluetoothService.class), mBluetoothServiceConnection, BIND_AUTO_CREATE);
-            mIsBleServiceBound=true;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    private void startScan() {
-        startActivityForResult(new Intent(MainActivity.this, ScanActivity.class), REQUEST_GET_DEVICE);
     }
 
     /**
@@ -196,24 +296,27 @@ public class MainActivity extends Activity implements Observer {
 
         //update values
         if (msg.equals(GpsService.ACTION_LOCATION_UPDATE)) {
-            TextView log1 = (TextView) findViewById(R.id.mainActivity_text_distance);
-            TextView log2 = (TextView) findViewById(R.id.mainActivity_text_speed);
+            TextView distance = (TextView) findViewById(R.id.mainActivity_text_distance);
+            TextView actualSpeed = (TextView) findViewById(R.id.mainActivity_text_speedActual);
+            TextView neededSpeed = (TextView) findViewById(R.id.mainActivity_text_speedActual);
+            NumberFormat distanceFormat = new DecimalFormat("0.00");
+            NumberFormat speedFormat = new DecimalFormat("0.0");
+            float neSpe=mStartspeed + mgr.getActualDistance() / 200 * 0.5f;
 
-            mDistance += mgr.getActualDistance(); //increase distance
-            log1.setText(String.valueOf(mDistance));
-            log2.setText(String.valueOf(mgr.getActualSpeed()));
+            neededSpeed.setText(speedFormat.format(neSpe));
+            distance.setText(distanceFormat.format(mgr.getActualDistance()/1000));
+            actualSpeed.setText(speedFormat.format(mgr.getActualSpeed()));
 
             //add a measurement point to the ArrayList
-            int intDistance = (int) mDistance;
+            int intDistance = (int) mgr.getActualDistance();
             if (intDistance % STORE_PERIOD > 0 && intDistance % STORE_PERIOD < 10) {
                 mgr.addData(new ActualData());
-                log1.setText("addData:" + mDistance);
             }
         }
         if (msg.equals(BluetoothService.ACTION_HEART_RATE_UPDATE)) {
-            TextView log3 = (TextView) findViewById(R.id.mainActivity_text_heartRate);
+            TextView rate = (TextView) findViewById(R.id.mainActivity_text_heartRate);
 
-            log3.setText(String.valueOf(mgr.getActualHeartRate()));
+            rate.setText(String.valueOf(mgr.getActualHeartRate()));
             changeHeartVisualisation();
         }
 
@@ -229,7 +332,7 @@ public class MainActivity extends Activity implements Observer {
             mIsDeviceConnected = false;
         }
 
-        if (msg.equals(GpsService.ACTION_PROVIDER_ENABLED)) {
+        if (msg.equals(GpsService.ACTION_GPS_FIXED)) {
             ImageView status = (ImageView) findViewById(R.id.mainActivity_image_GPSconnected);
             status.setColorFilter(Color.GREEN);
         }
@@ -240,31 +343,7 @@ public class MainActivity extends Activity implements Observer {
         }
     }
 
-    public void changeHeartVisualisation() {
-        ImageView v = (ImageView) findViewById(R.id.mainActivity_image_HeartRate);
-        if (mImageSet) {
-            v.setImageResource(R.drawable.ic_favorite_border_black_48dp);
-            mImageSet = false;
-        } else {
-            v.setImageResource(R.drawable.ic_favorite_48pt_3x);
-            mImageSet = true;
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //cleanup
-        if (mIsGpsServiceBound) {
-            unbindService(mGpsServiceConnection);
-        }
-        if (mIsBleServiceBound)
-            unbindService(mBluetoothServiceConnection);
-        DataManager.getInstance().unregisterReceiver(getApplicationContext());
-        DataManager.getInstance().detach(this);
-        DataManager.getInstance().finalize();
-    }
-
+    //Observer Pattern related methods
     @Override
     public void update() {
         //get new values
@@ -273,7 +352,7 @@ public class MainActivity extends Activity implements Observer {
     @Override
     public void update(String msg) {
         if (msg.equals(BluetoothService.ACTION_INVALID_DEVICE)) {
-            Toast.makeText(this, "You have to use a device which is able to display the Heart Rate...", Toast.LENGTH_LONG);
+            Toast.makeText(this, "Please use a device which is able to display the Heart Rate...", Toast.LENGTH_LONG);
             return;
         }
         updateUI(msg);
@@ -281,29 +360,6 @@ public class MainActivity extends Activity implements Observer {
 
     }
 
-    private boolean enableBluetoothAndStartScan() {
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT).show();
-        }
 
-        if (mBluetoothManager == null) {
-            mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-            if (mBluetoothManager == null) {
-                Log.e(TAG, "Unable to initialize BluetoothManager.");
-                return false;
-            }
-        }
-        mBluetoothAdapter = mBluetoothManager.getAdapter();
-        if (mBluetoothAdapter == null) {
-            Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
-            return false;
-        }
-
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        } else startScan();
-        return true;
-    }
 
 }

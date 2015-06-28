@@ -22,14 +22,20 @@ public class GpsService extends Service implements LocationListener {
     public static final String EXTRA_GPS_DATA = "blub";
     public static final String ACTION_PROVIDER_ENABLED = "bubububbs";
     public static final String ACTION_PROVIDER_DISABLED = "gashjfkld";
+    public static final String ACTION_GPS_FIXED = "fixed bla";
     public static boolean gpsIsConnected = false;
     private LocationManager mLocationManager = null;
     private IBinder mBinder = new LocalBinder();
+    private boolean mfirstUpdate=true;
 
 
     @Override
     public void onLocationChanged(Location location) {
-        gpsIsConnected = true;
+        if(mfirstUpdate){
+            Intent i = new Intent(ACTION_GPS_FIXED);
+            sendBroadcast(i);
+            mfirstUpdate=false;
+        }
         //build and send intent
         Intent update = new Intent(ACTION_LOCATION_UPDATE);
         Bundle bundle = new Bundle();

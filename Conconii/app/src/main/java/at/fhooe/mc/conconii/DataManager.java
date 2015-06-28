@@ -31,6 +31,7 @@ public class DataManager extends Observable {
     private int mHeartRate = 0;
     private float mSpeed = 0;
     private Intent mIntent = null;
+    private float mDistance=0;
 
 
     /**
@@ -77,7 +78,7 @@ public class DataManager extends Observable {
      */
     public int getActualHeartRate() {
         //check the received intent for its type
-        if(mIntent==null || !mIntent.getAction().equals(BluetoothService.ACTION_HEART_RATE_UPDATE)){
+        if (mIntent == null || !mIntent.getAction().equals(BluetoothService.ACTION_HEART_RATE_UPDATE)) {
             return mHeartRate;
         }
         if (mIntent.getIntExtra(BluetoothService.EXTRA_BLE_DATA, -1) != -1) {
@@ -88,27 +89,25 @@ public class DataManager extends Observable {
     }
 
     /**
-     * Getter method for the actual distance between the last intent and the actual one
+     * Getter method for the actual distance since start
      *
-     * @return The distance between the last location and the current, 0 if no data is received
+     * @return The distance since start
      */
     public float getActualDistance() {
-        float distance = 0;
         //check the actual intent for its type
         if (mIntent != null && mIntent.getExtras().getParcelable(GpsService.EXTRA_GPS_DATA) != null) {//check whether parcelable or not
             mgr.mActualLocation = mIntent.getExtras().getParcelable(GpsService.EXTRA_GPS_DATA);
-            Log.i(TAG, "Parcelable received: " + mActualLocation);
 
             //calculate new distance in meters
             if (mLastLocation != null) {
-                distance = mLastLocation.distanceTo(mActualLocation);
+                mDistance += mLastLocation.distanceTo(mActualLocation);
             }
         }
         //store last location
         if (mgr.mActualLocation != null) {
             mgr.mLastLocation = new Location(mActualLocation);
         }
-        return distance;
+        return mDistance;
     }
 
     /**
@@ -135,16 +134,16 @@ public class DataManager extends Observable {
                 mgr.mIntent = intent;
             }
             //update the UI
-            Log.i(TAG,"Received Intent, going to update Observers");
+            Log.i(TAG, "Received Intent, going to update Observers");
             notifyAllObservers(intent.getAction());
         }
     };
 
-    public void registerReceiver(Context context){
-        context.registerReceiver(mDataReceiver,createIntentFilter());
+    public void registerReceiver(Context context) {
+        context.registerReceiver(mDataReceiver, createIntentFilter());
     }
 
-    public void unregisterReceiver(Context context){
+    public void unregisterReceiver(Context context) {
         context.unregisterReceiver(mDataReceiver);
     }
 
@@ -157,6 +156,7 @@ public class DataManager extends Observable {
         intentFilter.addAction(GpsService.ACTION_LOCATION_UPDATE);
         intentFilter.addAction(GpsService.ACTION_PROVIDER_ENABLED);
         intentFilter.addAction(GpsService.ACTION_PROVIDER_DISABLED);
+        intentFilter.addAction(GpsService.ACTION_GPS_FIXED);
         return intentFilter;
     }
 

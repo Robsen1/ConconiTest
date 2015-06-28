@@ -1,6 +1,8 @@
 package at.fhooe.mc.conconii;
 
 
+import android.util.Log;
+
 /**
  * Created by Robsen & Gix
  * This class is a simple data container class for storing the measurement points.
@@ -17,16 +19,14 @@ public class ActualData {
         this.mHeartRate = mgr.getActualHeartRate();
         this.mDistance = mgr.getActualDistance();
         this.mSpeed = mgr.getActualSpeed();
-        //if the startspeed is 6km/h!--------------------!
-        this.mTargetSpeed = 6 + mDistance / 200 * 0.5f;
+        this.mTargetSpeed = MainActivity.mStartspeed + mDistance / 200 * 0.5f;
     }
 
-    public ActualData(int _heartRate,float _speed, float _distance) {
+    public ActualData(int _heartRate, float _speed, float _distance) {
         this.mHeartRate = _heartRate;
         this.mDistance = _distance;
         this.mSpeed = _speed;
-        //if the startspeed is 6km/h!--------------------!
-        this.mTargetSpeed = 6 + mDistance / 200 * 0.5f;
+        this.mTargetSpeed = MainActivity.mStartspeed + mDistance / 200 * 0.5f;
     }
 
     //Getter methods
