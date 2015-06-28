@@ -199,5 +199,6 @@ public class DataManager extends Observable {
         clear(context);
         getInstance();
         DataManager.mgr.registerReceiver(context);
+        notifyAllObservers();
     }
 }

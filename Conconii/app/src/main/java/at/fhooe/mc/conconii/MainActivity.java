@@ -38,6 +38,7 @@ public class MainActivity extends Activity implements Observer {
     private static final int STORE_PERIOD = 50; //in meters
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_GET_DEVICE = 2;
+    private static final String ACTION_RESET_LOCATION ="conconii.gps.reset" ;
 
     //options
     protected static int mStartspeed = 6; //modified by seekbar
@@ -91,7 +92,6 @@ public class MainActivity extends Activity implements Observer {
         setContentView(R.layout.activity_main);
         //initialize singleton
         DataManager.getInstance().registerReceiver(getApplicationContext());
-        DataManager.getInstance().attach(this); //observer
         //build UI
         createStartscreenUI();
 
@@ -294,6 +294,7 @@ public class MainActivity extends Activity implements Observer {
      * At Call, the countdown starts with a predefined interval of 900ms.
      * The Starting Value is hardcoded with 3000ms.
      * The method is also capable for changing the TextView.
+     * On finish the MainActivity is attached to the Observable.
      * @see CountDownTimer
      */
     private void startCountdown() {
@@ -317,6 +318,8 @@ public class MainActivity extends Activity implements Observer {
                 Button quit = (Button) findViewById(R.id.mainActivity_button_quit);
                 quit.setText("FINISH");
                 mTestIsRunning = true;
+                DataManager.getInstance().clear(MainActivity.this.getApplicationContext());
+                DataManager.getInstance().attach(MainActivity.this); //observer
             }
         };
         timer.start();
@@ -349,13 +352,13 @@ public class MainActivity extends Activity implements Observer {
         if (mgr == null) return;
 
         //update values
-        if (msg.equals(GpsService.ACTION_LOCATION_UPDATE)) {
+        if (msg.equals(GpsService.ACTION_LOCATION_UPDATE) ||msg.equals(ACTION_RESET_LOCATION)) {
             TextView distance = (TextView) findViewById(R.id.mainActivity_text_distance);
             TextView actualSpeed = (TextView) findViewById(R.id.mainActivity_text_speedActual);
             TextView neededSpeed = (TextView) findViewById(R.id.mainActivity_text_speedNeeded);
             NumberFormat distanceFormat = new DecimalFormat("0");
             NumberFormat speedFormat = new DecimalFormat("0.0");
-            float neSpe = mStartspeed + mgr.getActualDistance() / 200 * 0.5f;
+            float neSpe = mStartspeed + (int)mgr.getActualDistance() / 200 * 0.5f;
 
             neededSpeed.setText("/"+speedFormat.format(neSpe));
             distance.setText(distanceFormat.format(mgr.getActualDistance()));
@@ -400,7 +403,7 @@ public class MainActivity extends Activity implements Observer {
     //Observer Pattern related methods
     @Override
     public void update() {
-        //for future use
+        updateUI(ACTION_RESET_LOCATION );
     }
 
     @Override

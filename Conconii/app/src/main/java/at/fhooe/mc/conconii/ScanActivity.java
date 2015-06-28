@@ -133,11 +133,11 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
      */
     private void rotateImage() {
         final ImageView refresh = (ImageView) findViewById(R.id.scanActivity_image_refresh);
-        CountDownTimer timer = new CountDownTimer(SCAN_PERIOD, 100) {
+        CountDownTimer timer = new CountDownTimer(SCAN_PERIOD, 10) {
             int i=1;
             @Override
             public void onTick(long millisUntilFinished) {
-                refresh.setRotation(9*i++);
+                refresh.setRotation(1*i++);
                 refresh.invalidate();
             }
 
