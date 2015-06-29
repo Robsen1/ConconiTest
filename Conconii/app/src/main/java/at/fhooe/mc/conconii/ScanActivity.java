@@ -39,6 +39,8 @@ import java.util.ArrayList;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
+ *
+ * @author Robsen & Gix
  */
 public class ScanActivity extends ListActivity implements View.OnClickListener {
     //constants
@@ -58,6 +60,10 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
     //lifecycle related methods
 
+    /**
+     * Creates layout and initializes Bluetooth.
+     * @param savedInstanceState
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +74,9 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
         setContentView(R.layout.activity_scan);
     }
 
+    /**
+     * Starts scanning and initializes list.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -77,6 +86,9 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
         scanForDevices(true);
     }
 
+    /**
+     * Stops scanning and cleans up.
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -86,6 +98,13 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
     //listener methods
 
+    /**
+     * Used to stop scanning and setting result for {@link MainActivity#onActivityResult(int, int, Intent)}.
+     * @param l
+     * @param v
+     * @param position
+     * @param id
+     */
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         mDevice = mDeviceListAdapter.getDevice(position);
@@ -102,6 +121,10 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
         finish();
     }
 
+    /**
+     * Restarts scanning.
+     * @param v
+     */
     @Override
     public void onClick(View v) {
         if (!mScanning) {

@@ -10,21 +10,22 @@ import android.util.Log;
 import java.util.ArrayList;
 
 /**
- * Created by Robsen & Gix
  * The DataManager must be used to get data from any sensor.
  * This class is implemented as Singleton and it's main job is to provide and store
  * data. In addition to this core tasks the manager also stores the list of measurement points.
  * The manager as a broadcast receiver gets each intent and decides which data was received and stores
  * some data until a new intent is received.
+ *
+ * @author Robsen & Gix
  */
 
 public class DataManager extends Observable {
     //static fields
     private static final String TAG = "DataManager";
     private static DataManager mgr = null; //singleton field
+    private final ArrayList<ActualData> mDataList = new ArrayList<>();
 
     //member variables
-    private final ArrayList<ActualData> mDataList = new ArrayList<>();
     private Intent mIntent = null;
     private Location mLastLocation = null;
     private Location mActualLocation = null;
@@ -52,6 +53,9 @@ public class DataManager extends Observable {
         return DataManager.mgr;
     }
 
+    /**
+     * Blocks the constructor because of singleton implementation
+     */
     private DataManager() {
         //do stuff once
     }

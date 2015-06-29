@@ -2,7 +2,6 @@ package at.fhooe.mc.conconii;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -19,20 +18,28 @@ import java.util.Date;
 
 /**
  * This Activity displays a human readable representation of data collected during the test.
+ * This class uses the MPAndroid Chart package.
+ *
+ * @author Robsen & Gix
  */
 public class EvaluationActivity extends Activity {
     private LineChart mChart;
 
+    /**
+     * Creates the Line Chart for displaying Data.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_evaluation);
-        //get chart
         mChart = (LineChart) findViewById(R.id.evaluationScreen_linechart);
 
         //calculate the points to display
         EvaluationCalculator calc = new EvaluationCalculator(DataManager.getInstance().getDataList());
         ArrayList<ActualData> finalData = calc.getFinalData();
+
+        //#############Testingdata#################
 //        finalData.add(new ActualData(80, 5, 0));
 //        finalData.add(new ActualData(80, 5, 200));
 //        finalData.add(new ActualData(88, 5, 400));
@@ -72,29 +79,22 @@ public class EvaluationActivity extends Activity {
 
         LineData data = new LineData(xVals, dataSets);
         mChart.setData(data);
-        mChart.invalidate(); // refresh
+        mChart.invalidate();
 
-        // formatting
-        //Chart
+        //formatting the chart
         mChart.setDescription("");
 
-        //X Axis
+        //x-axis
         XAxis xAx = mChart.getXAxis();
         xAx.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAx.setTextSize(14f);
-        //set text km/h
-        TextView textXAxis = (TextView) findViewById(R.id.evaluation_xAxis_text);
-//        textXAxis.layout(xAxisXPos, 0,xAxisYPos, 0);
 
-        //Y Axis
+        //y-axis
         mChart.getAxisRight().setEnabled(false);
         YAxis yAx = mChart.getAxisLeft();
         yAx.setStartAtZero(false);
         yAx.setTextSize(14f);
         yAx.setValueFormatter(new MyValueFormatter());
-        //set text bpm
-        TextView textYAxis = (TextView) findViewById(R.id.evaluation_yAxis_text);
-//        textYAxis.layout(yAxisXPos, 0, yAxisYPos, 0);
     }
 
     /**

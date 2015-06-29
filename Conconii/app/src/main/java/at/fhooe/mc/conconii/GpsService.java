@@ -11,9 +11,10 @@ import android.os.IBinder;
 import android.util.Log;
 
 /**
- * Created by Robsen & Gix
  * This is the service for receiving gps data which is sent to the DataManger
  * This service runs in his own thread and listens for Location updates
+ *
+ * @author Robsen & Gix
  */
 public class GpsService extends Service implements LocationListener {
     //constants
@@ -31,11 +32,22 @@ public class GpsService extends Service implements LocationListener {
 
     //lifecycle methods
 
+    /**
+     * Called on bind
+     * @param intent
+     * @return
+     */
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
 
+    /**
+     * Called on unbind.
+     * Performs cleanup.
+     * @param intent
+     * @return
+     */
     @Override
     public boolean onUnbind(Intent intent) {
         mLocationManager.removeUpdates(this);
@@ -44,6 +56,10 @@ public class GpsService extends Service implements LocationListener {
 
     //listener methods
 
+    /**
+     * Sends a broadcasts which the {@link DataManager} should receive.
+     * @param location
+     */
     @Override
     public void onLocationChanged(Location location) {
         if (mFirstUpdate) {
@@ -60,10 +76,20 @@ public class GpsService extends Service implements LocationListener {
         Log.i(TAG, "Location update sent : " + location);
     }
 
+    /**
+     * empty
+     * @param provider
+     * @param status
+     * @param extras
+     */
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
 
+    /**
+     * Sends a broadcasts which the {@link DataManager} should receive.
+     * @param provider
+     */
     @Override
     public void onProviderEnabled(String provider) {
         if (provider.equals(LocationManager.GPS_PROVIDER)) {
@@ -72,6 +98,10 @@ public class GpsService extends Service implements LocationListener {
         }
     }
 
+    /**
+     * Sends a broadcasts which the {@link DataManager} should receive.
+     * @param provider
+     */
     @Override
     public void onProviderDisabled(String provider) {
         if (provider.equals(LocationManager.GPS_PROVIDER)) {

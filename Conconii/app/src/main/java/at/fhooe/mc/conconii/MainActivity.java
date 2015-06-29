@@ -27,7 +27,11 @@ import java.text.NumberFormat;
 
 
 /**
- * The MainActivity displays two major layouts: the startScreen and the mainActivity layout.
+ *
+ * The MainActivity displays two major layouts: the startscreen and the mainActivity layout.
+ * The displayed layout depends on the state of the test.
+ *
+ * @author Robsen & Gix
  */
 public class MainActivity extends Activity implements Observer {
 
@@ -86,6 +90,11 @@ public class MainActivity extends Activity implements Observer {
     };
 
     //lifecycle related methods
+
+    /**
+     * Initializes the {@link DataManager} singleton, creates the UI and binds the {@link #mGpsService}.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +109,9 @@ public class MainActivity extends Activity implements Observer {
         enableBluetoothAndStartScan();
     }
 
+    /**
+     * Switches the layouts.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -111,6 +123,13 @@ public class MainActivity extends Activity implements Observer {
         }
     }
 
+    /**
+     * Callback for Activities started with a specific request Code.
+     *
+     * @param requestCode {@link #REQUEST_ENABLE_BT}, {@link #REQUEST_GET_DEVICE}
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // User chose not to enable Bluetooth.
@@ -129,6 +148,9 @@ public class MainActivity extends Activity implements Observer {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    /**
+     * General app cleanup.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();

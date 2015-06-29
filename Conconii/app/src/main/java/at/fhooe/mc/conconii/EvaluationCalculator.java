@@ -3,14 +3,20 @@ package at.fhooe.mc.conconii;
 import java.util.ArrayList;
 
 /**
- * Created by Robsn & Gix
  * This class is used to create a list of final data which can be used to display
  * in {@link EvaluationActivity}.
+ *
+ * @author Robsen & Gix
  */
 class EvaluationCalculator {
     private final ArrayList<ActualData> mData;
     private final ArrayList<ActualData> mFinalData;
 
+    /**
+     * Transforms a list of actual data in a final list for displaying the data on {@link EvaluationActivity}
+     *
+     * @param data The list with actual data from {@link DataManager}
+     */
     EvaluationCalculator(ArrayList<ActualData> data) {
         mFinalData = new ArrayList<>();
         mData = data;
@@ -51,7 +57,7 @@ class EvaluationCalculator {
 
 
     /**
-     * Getter for the list of final data.
+     * Getter for the list of final data created by {@link #calcFinalData()}
      *
      * @return The final data list
      */

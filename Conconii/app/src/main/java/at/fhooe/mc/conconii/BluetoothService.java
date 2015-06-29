@@ -20,10 +20,11 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Created by Robsen & Gix
  * This is the service for creating a ble connection and for receiving data from the GATT serve.
  * This service works as a GATT client. Received data is sent to the {@link DataManager} singleton.
  * This service is bound to the {@link MainActivity}
+ *
+ * @author Robsen & Gix
  */
 
 //testing MAC: 6C:EC:EB:00:E1:5F
@@ -112,6 +113,11 @@ public class BluetoothService extends Service {
         }
     };
 
+    /**
+     * Called on bind.
+     * @param intent
+     * @return
+     */
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -174,6 +180,12 @@ public class BluetoothService extends Service {
         return true;
     }
 
+    /**
+     * Called on unbind.
+     * Performs cleanup.
+     * @param intent
+     * @return
+     */
     @Override
     public boolean onUnbind(Intent intent) {
 
