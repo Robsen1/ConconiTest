@@ -113,16 +113,15 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
     /**
      * Sets the visibility of the text.
-     * @param enable
-     * true -> visible /
-     * false -> gone
+     *
+     * @param enable true -> visible /
+     *               false -> gone
      */
     private void setTextVisibility(boolean enable) {
         TextView text = (TextView) findViewById(R.id.scanActivity_text_searching);
-        if (enable){
+        if (enable) {
             text.setVisibility(View.VISIBLE);
-        }
-        else{
+        } else {
             text.setVisibility(View.GONE);
         }
 
@@ -134,10 +133,11 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
     private void rotateImage() {
         final ImageView refresh = (ImageView) findViewById(R.id.scanActivity_image_refresh);
         CountDownTimer timer = new CountDownTimer(SCAN_PERIOD, 10) {
-            int i=1;
+            int i = 1;
+
             @Override
             public void onTick(long millisUntilFinished) {
-                refresh.setRotation(1*i++);
+                refresh.setRotation(1 * i++);
                 refresh.invalidate();
             }
 
@@ -214,6 +214,7 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
         /**
          * Adds a device to ArrayList if the list doesn't contain it.
+         *
          * @param device The device to add
          */
         public void addDevice(BluetoothDevice device) {
@@ -224,6 +225,7 @@ public class ScanActivity extends ListActivity implements View.OnClickListener {
 
         /**
          * Getter for the device chosen by the user.
+         *
          * @param position The clicked position.
          * @return The device
          */

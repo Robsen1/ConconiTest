@@ -7,15 +7,15 @@ import java.util.ArrayList;
  * This class is used to create a list of final data which can be used to display
  * in {@link EvaluationActivity}.
  */
-public class EvaluationCalculator {
-    private ArrayList<ActualData> mData;
-    private ArrayList<ActualData> mFinalData;
+class EvaluationCalculator {
+    private final ArrayList<ActualData> mData;
+    private final ArrayList<ActualData> mFinalData;
 
     EvaluationCalculator(ArrayList<ActualData> data) {
-        mFinalData  = new ArrayList<>();
+        mFinalData = new ArrayList<>();
         mData = data;
-        if(mData.size()!=0)
-        calcFinalData();
+        if (mData.size() != 0)
+            calcFinalData();
     }
 
     /**
@@ -52,6 +52,7 @@ public class EvaluationCalculator {
 
     /**
      * Getter for the list of final data.
+     *
      * @return The final data list
      */
     public ArrayList<ActualData> getFinalData() {

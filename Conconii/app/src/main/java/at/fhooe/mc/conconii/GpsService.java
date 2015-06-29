@@ -18,16 +18,16 @@ import android.util.Log;
 public class GpsService extends Service implements LocationListener {
     //constants
     private static final String TAG = "GpsService";
-    public static final String ACTION_LOCATION_UPDATE = "blablba";
-    public static final String EXTRA_GPS_DATA = "blub";
-    public static final String ACTION_PROVIDER_ENABLED = "bubububbs";
-    public static final String ACTION_PROVIDER_DISABLED = "gashjfkld";
-    public static final String ACTION_GPS_FIXED = "fixed bla";
+    public static final String ACTION_LOCATION_UPDATE = "conconii.gps.action.location.update";
+    public static final String EXTRA_GPS_DATA = "conconii.gps.extra.gps.data";
+    public static final String ACTION_PROVIDER_ENABLED = "conconii.gps.action.provider.enabled";
+    public static final String ACTION_PROVIDER_DISABLED = "conconii.gps.action.provide.disabled";
+    public static final String ACTION_GPS_FIXED = "conconii.gps.action.gps.fixed";
+    private final IBinder mBinder = new LocalBinder();
 
     //variables
     private LocationManager mLocationManager = null;
-    private IBinder mBinder = new LocalBinder();
-    private boolean mFirstUpdate =true;
+    private boolean mFirstUpdate = true;
 
     //lifecycle methods
 
@@ -46,10 +46,10 @@ public class GpsService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        if(mFirstUpdate){
+        if (mFirstUpdate) {
             Intent i = new Intent(ACTION_GPS_FIXED);
             sendBroadcast(i);
-            mFirstUpdate =false;
+            mFirstUpdate = false;
         }
         //build and send intent
         Intent update = new Intent(ACTION_LOCATION_UPDATE);
@@ -86,6 +86,7 @@ public class GpsService extends Service implements LocationListener {
      * Is called to check whether the GPS-provider is enabled or not. Is called
      * by the {@link android.content.ServiceConnection} callback.
      * Additionally sends a broadcast for each result.
+     *
      * @return True if enabled, false otherwise
      */
     public boolean isEnabled() {
@@ -115,8 +116,8 @@ public class GpsService extends Service implements LocationListener {
     }
 
 
-
     //inner classes
+
     /**
      * This class is for returning an instance of the service
      */

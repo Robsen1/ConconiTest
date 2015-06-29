@@ -38,10 +38,10 @@ public class MainActivity extends Activity implements Observer {
     private static final int STORE_PERIOD = 50; //in meters
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_GET_DEVICE = 2;
-    private static final String ACTION_RESET_LOCATION ="conconii.gps.reset" ;
+    private static final String ACTION_RESET_LOCATION = "conconii.gps.reset";
 
     //options
-    protected static int mStartspeed = 6; //modified by seekbar
+    static int mStartspeed = 6; //modified by seekbar
 
     //flags
     private boolean mTestIsRunning = false;
@@ -92,6 +92,7 @@ public class MainActivity extends Activity implements Observer {
         setContentView(R.layout.activity_main);
         //initialize singleton
         DataManager.getInstance().registerReceiver(getApplicationContext());
+        DataManager.getInstance().attach(MainActivity.this); //observer
         //build UI
         createStartscreenUI();
 
@@ -151,7 +152,7 @@ public class MainActivity extends Activity implements Observer {
      */
     private boolean enableBluetoothAndStartScan() {
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter=bluetoothManager.getAdapter();
+        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT).show();
         }
@@ -227,7 +228,6 @@ public class MainActivity extends Activity implements Observer {
     /**
      * This method should only be called once for initializing the behavior of the UserInterface.
      * It only specifies the behaviour of Elements in the startScreen Layout.
-     *
      */
     private void createStartscreenUI() {
         final Button finish = (Button) findViewById(R.id.mainActivity_button_quit);
@@ -275,9 +275,9 @@ public class MainActivity extends Activity implements Observer {
                 TextView speed = (TextView) findViewById(R.id.startscreen_text_startspeed_value);
                 speed.setText(String.valueOf(progress + 6));
                 mStartspeed = progress + 6;
-                TextView startspeed= (TextView) findViewById(R.id.mainActivity_text_speedNeeded);
+                TextView startspeed = (TextView) findViewById(R.id.mainActivity_text_speedNeeded);
                 NumberFormat speedFormat = new DecimalFormat("0.0");
-                startspeed.setText("/"+speedFormat.format(mStartspeed));
+                startspeed.setText("/" + speedFormat.format(mStartspeed));
             }
 
             @Override
@@ -295,6 +295,7 @@ public class MainActivity extends Activity implements Observer {
      * The Starting Value is hardcoded with 3000ms.
      * The method is also capable for changing the TextView.
      * On finish the MainActivity is attached to the Observable.
+     *
      * @see CountDownTimer
      */
     private void startCountdown() {
@@ -319,7 +320,6 @@ public class MainActivity extends Activity implements Observer {
                 quit.setText("FINISH");
                 mTestIsRunning = true;
                 DataManager.getInstance().clear(MainActivity.this.getApplicationContext());
-                DataManager.getInstance().attach(MainActivity.this); //observer
             }
         };
         timer.start();
@@ -352,15 +352,15 @@ public class MainActivity extends Activity implements Observer {
         if (mgr == null) return;
 
         //update values
-        if (msg.equals(GpsService.ACTION_LOCATION_UPDATE) ||msg.equals(ACTION_RESET_LOCATION)) {
+        if (msg.equals(GpsService.ACTION_LOCATION_UPDATE) || msg.equals(ACTION_RESET_LOCATION)) {
             TextView distance = (TextView) findViewById(R.id.mainActivity_text_distance);
             TextView actualSpeed = (TextView) findViewById(R.id.mainActivity_text_speedActual);
             TextView neededSpeed = (TextView) findViewById(R.id.mainActivity_text_speedNeeded);
             NumberFormat distanceFormat = new DecimalFormat("0");
             NumberFormat speedFormat = new DecimalFormat("0.0");
-            float neSpe = mStartspeed + (int)mgr.getActualDistance() / 200 * 0.5f;
+            float neSpe = mStartspeed + (int) mgr.getActualDistance() / 200 * 0.5f;
 
-            neededSpeed.setText("/"+speedFormat.format(neSpe));
+            neededSpeed.setText("/" + speedFormat.format(neSpe));
             distance.setText(distanceFormat.format(mgr.getActualDistance()));
             actualSpeed.setText(speedFormat.format(mgr.getActualSpeed()));
 
@@ -385,7 +385,7 @@ public class MainActivity extends Activity implements Observer {
 
         if (msg.equals(BluetoothService.ACTION_GATT_DISCONNECTED)) {
             ImageView status = (ImageView) findViewById(R.id.mainActivity_image_BLEconnected);
-            status.setColorFilter(Color.RED);
+            status.setColorFilter(Color.argb(255,199,63,10)); //red
             mIsDeviceConnected = false;
         }
 
@@ -396,14 +396,14 @@ public class MainActivity extends Activity implements Observer {
 
         if (msg.equals(GpsService.ACTION_PROVIDER_DISABLED)) {
             ImageView status = (ImageView) findViewById(R.id.mainActivity_image_GPSconnected);
-            status.setColorFilter(Color.RED);
+            status.setColorFilter(Color.argb(255,199,63,10)); //red
         }
     }
 
     //Observer Pattern related methods
     @Override
     public void update() {
-        updateUI(ACTION_RESET_LOCATION );
+        updateUI(ACTION_RESET_LOCATION);
     }
 
     @Override

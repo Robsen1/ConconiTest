@@ -1,13 +1,11 @@
 package at.fhooe.mc.conconii;
 
 
-import android.util.Log;
-
 /**
  * Created by Robsen & Gix
  * This class is a simple data container class for storing the measurement points.
  */
-public class ActualData {
+class ActualData {
     private int mHeartRate = 0;
     private float mDistance = 0f;
     private float mSpeed = 0f;

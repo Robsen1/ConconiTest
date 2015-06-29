@@ -24,19 +24,20 @@ public class DataManager extends Observable {
     private static DataManager mgr = null; //singleton field
 
     //member variables
-    private ArrayList<ActualData> mDataList = new ArrayList<>();
+    private final ArrayList<ActualData> mDataList = new ArrayList<>();
     private Intent mIntent = null;
     private Location mLastLocation = null;
     private Location mActualLocation = null;
     private int mHeartRate = 0;
     private float mSpeed = 0;
-    private float mDistance=0;
+    private float mDistance = 0;
 
     //flags
-    private boolean mReceiverIsRegistered =false;
+    private boolean mReceiverIsRegistered = false;
 
 
     //Singleton methods
+
     /**
      * This method is used to get the DataManager instance.
      * if once returned no new instance will be created.
@@ -56,6 +57,7 @@ public class DataManager extends Observable {
     }
 
     //Data related methods
+
     /**
      * Getter method for the list of measured points
      *
@@ -145,24 +147,27 @@ public class DataManager extends Observable {
 
     /**
      * Registers the receiver to the given context.
+     *
      * @param context The Context to register
      */
     public void registerReceiver(Context context) {
         context.registerReceiver(mDataReceiver, createIntentFilter());
-        mgr.mReceiverIsRegistered =true;
+        mgr.mReceiverIsRegistered = true;
     }
 
     /**
      * Unregisters the receiver from the given context.
+     *
      * @param context The registered Context
      */
     public void unregisterReceiver(Context context) {
         context.unregisterReceiver(mDataReceiver);
-        mReceiverIsRegistered=false;
+        mReceiverIsRegistered = false;
     }
 
     /**
      * Creates the intent filter for receiving Intents
+     *
      * @return The intent filter
      */
     private IntentFilter createIntentFilter() {
@@ -180,19 +185,21 @@ public class DataManager extends Observable {
 
     /**
      * Clears the singleton instance and unregisters the receiver if registered.
-     * @see #unregisterReceiver(Context)
+     *
      * @param context the context to unregister
+     * @see #unregisterReceiver(Context)
      */
-    protected void clear(Context context){
-        if(mReceiverIsRegistered){
+    void clear(Context context) {
+        if (mReceiverIsRegistered) {
             unregisterReceiver(context);
         }
-        mgr=null;
+        mgr = null;
     }
 
     /**
      * Resets the singleton
      * Uses the {@link #clear(Context)} method
+     *
      * @param context The context for re-registering the receiver.
      */
     public void reset(Context context) {

@@ -62,10 +62,10 @@ public class EvaluationActivity extends Activity {
         LineDataSet dataSet = new LineDataSet(chartData, ft.format(dNow));
         dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
 
-        ArrayList<LineDataSet> dataSets = new ArrayList<LineDataSet>();
+        ArrayList<LineDataSet> dataSets = new ArrayList<>();
         dataSets.add(dataSet);
 
-        ArrayList<String> xVals = new ArrayList<String>();
+        ArrayList<String> xVals = new ArrayList<>();
         for (int i = 0; i < finalData.size(); i++) {
             xVals.add(Integer.toString((int) finalData.get(i).getTargetSpeed()));
         }
@@ -101,11 +101,12 @@ public class EvaluationActivity extends Activity {
      * A Formatter class for individual formatting purposes.
      */
     private class MyValueFormatter implements ValueFormatter {
-        private DecimalFormat mFormat;
+        private final DecimalFormat mFormat;
 
         public MyValueFormatter() {
             mFormat = new DecimalFormat("###"); // use one decimal
         }
+
         @Override
         public String getFormattedValue(float value) {
             return mFormat.format(value); // append a dollar-sign
