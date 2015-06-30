@@ -341,7 +341,7 @@ public class MainActivity extends Activity implements Observer {
                 Button quit = (Button) findViewById(R.id.mainActivity_button_quit);
                 quit.setText("FINISH");
                 mTestIsRunning = true;
-                DataManager.getInstance().clear(MainActivity.this.getApplicationContext());
+                DataManager.getInstance().reset(MainActivity.this.getApplicationContext());
             }
         };
         timer.start();

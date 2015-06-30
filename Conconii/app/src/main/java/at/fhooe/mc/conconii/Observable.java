@@ -8,13 +8,14 @@ import java.util.ArrayList;
  * @author Robsen & Gix
  */
 public class Observable {
-    private final ArrayList<Observer> mObservers = new ArrayList<>();
+    private static final ArrayList<Observer> mObservers = new ArrayList<>();
 
     /**
      * Called to register observers.
      * Can't hold the same observer multiple times.
-     * @see Observer
+     *
      * @param observer The observer to register.
+     * @see Observer
      */
     public void attach(Observer observer) {
         if (!mObservers.contains(observer))
@@ -23,8 +24,9 @@ public class Observable {
 
     /**
      * Called to unregister observers.
-     * @see Observer
+     *
      * @param observer The observer to unregister.
+     * @see Observer
      */
     public void detach(Observer observer) {
         mObservers.remove(observer);
@@ -32,6 +34,7 @@ public class Observable {
 
     /**
      * For generally notifying all observers.
+     *
      * @see Observer
      */
     public void notifyAllObservers() {
@@ -42,8 +45,9 @@ public class Observable {
 
     /**
      * Is called to notify all Observers with a specific message.
-     * @see Observer
+     *
      * @param msg The specific notification message.
+     * @see Observer
      */
     public void notifyAllObservers(String msg) {
         for (int i = 0; i < mObservers.size(); i++) {
