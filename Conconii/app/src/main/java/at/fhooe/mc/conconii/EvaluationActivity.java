@@ -40,20 +40,24 @@ public class EvaluationActivity extends Activity {
         ArrayList<ActualData> finalData = calc.getFinalData();
 
         //#############Testingdata#################
-//        finalData.add(new ActualData(80, 5, 0));
-//        finalData.add(new ActualData(80, 5, 200));
-//        finalData.add(new ActualData(88, 5, 400));
-//        finalData.add(new ActualData(90, 5, 600));
-//        finalData.add(new ActualData(120, 5, 800));
-//        finalData.add(new ActualData(130, 5, 1000));
-//        finalData.add(new ActualData(140, 5, 1200));
-//        finalData.add(new ActualData(150, 5, 1400));
-//        finalData.add(new ActualData(150, 5, 1600));
-//        finalData.add(new ActualData(160, 5, 1800));
-//        finalData.add(new ActualData(170, 5, 2000));
-//        finalData.add(new ActualData(190, 5, 2200));
-//        finalData.add(new ActualData(190, 5, 2400));
-//        finalData.add(new ActualData(190, 5, 2600));
+        finalData.add(new ActualData(130, 5, 0));
+        finalData.add(new ActualData(136, 5, 200));//6
+        finalData.add(new ActualData(143, 5, 400));
+        finalData.add(new ActualData(151, 5, 600));
+        finalData.add(new ActualData(157, 5, 800));
+        finalData.add(new ActualData(163, 5, 1000));//8
+        finalData.add(new ActualData(171, 5, 1200));
+        finalData.add(new ActualData(176, 5, 1400));
+        finalData.add(new ActualData(180, 5, 1600));
+        finalData.add(new ActualData(183, 5, 1800));//10
+        finalData.add(new ActualData(186, 5, 2000));
+        finalData.add(new ActualData(190, 5, 2200));
+        finalData.add(new ActualData(192, 5, 2400));
+        finalData.add(new ActualData(196, 5, 2600));//12
+        finalData.add(new ActualData(198, 5, 2800));
+        finalData.add(new ActualData(200, 5, 3000));
+        finalData.add(new ActualData(203, 5, 2800));
+        finalData.add(new ActualData(204, 5, 3000));//14
 
         // actual date and time
         Date dNow = new Date();
